@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+apps/*/node_modules/
+apps/liminal/.next/
+
+# Build outputs
+dist/
+apps/*/dist/
+apps/liminal/.next/
+apps/liminal/out/
+
+# Environment
+.env
+.env.local
+apps/*/.env
+apps/*/.env.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/

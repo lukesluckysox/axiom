@@ -1,0 +1,440 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Design Tokens ──────────────────────────────────────────────── */
+:root {
+  --font-display: 'Cormorant Garamond';
+  --font-body: 'Satoshi';
+
+  /* ── Surfaces — warm soot / umber-charcoal, not fantasy blue-black ── */
+  --color-bg:        20 18 14;   /* deep warm near-black, like an aging book cover */
+  --color-surface:   26 23 18;   /* dark parchment-charcoal */
+  --color-surface-2: 33 30 24;   /* slightly elevated panel */
+  --color-surface-3: 43 38 32;   /* card, inset, raised surface */
+  --color-border:    106 97 84;  /* warm gray-brown; always use at low opacity */
+
+  /* ── Text — warm bone, ivory, ash ── */
+  --color-text:       218 212 200;  /* soft ivory, not harsh white */
+  --color-text-muted: 138 130 118;  /* taupe / ash */
+  --color-text-faint:  76  72  64;  /* very faint warm gray */
+
+  /* ── Accent — old brass / muted ochre; NOT glowing gold ── */
+  --color-gold:       156 134  84;  /* tarnished brass */
+  --color-gold-hover: 172 150  98;
+  --color-gold-muted: 102  86  52;
+  --color-gold-dim:    50  42  26;
+
+  /* ── Secondary accents — restrained ── */
+  --color-bronze:      98 112 100;  /* ink green-gray */
+  --color-plum:        86  96 116;  /* ink blue-gray */
+
+  /* ── Semantic ── */
+  --color-error:   146  62  50;
+  --color-success:  64 108  50;
+}
+
+/* ─── Base Reset ─────────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  -moz-text-size-adjust: none;
+  -webkit-text-size-adjust: none;
+  text-size-adjust: none;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  min-height: 100dvh;
+  font-family: var(--font-body), 'system-ui', sans-serif;
+  font-size: clamp(1rem, 0.95rem + 0.25vw, 1.0625rem);
+  line-height: 1.68;
+  color: rgb(var(--color-text));
+  background-color: rgb(var(--color-bg));
+}
+
+h1, h2, h3, h4, h5, h6 {
+  text-wrap: balance;
+  line-height: 1.15;
+}
+
+p, li, figcaption {
+  text-wrap: pretty;
+  max-width: 72ch;
+}
+
+img, picture, video, canvas, svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+input, button, textarea, select {
+  font: inherit;
+  color: inherit;
+}
+
+button { cursor: pointer; }
+
+ul[role='list'], ol[role='list'] { list-style: none; }
+
+::selection {
+  background: rgb(var(--color-gold) / 0.18);
+  color: rgb(var(--color-text));
+}
+
+:focus-visible {
+  outline: 1.5px solid rgb(var(--color-gold) / 0.6);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ─── Typography ─────────────────────────────────────────────────── */
+.font-display {
+  font-family: var(--font-display), 'Georgia', serif;
+}
+
+/* Display: primary editorial headline — italic, generous, reading-width */
+.text-display {
+  font-family: var(--font-display), 'Georgia', serif;
+  font-size: clamp(1.875rem, 1.1rem + 2.5vw, 3.25rem);
+  font-weight: 400;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+}
+
+/* Title: section or page heading */
+.text-title {
+  font-family: var(--font-display), 'Georgia', serif;
+  font-size: clamp(1.375rem, 1rem + 1.25vw, 2rem);
+  font-weight: 400;
+  line-height: 1.2;
+  letter-spacing: -0.005em;
+}
+
+/* Eyebrow: small uppercase section label */
+.eyebrow {
+  font-size: clamp(0.625rem, 0.58rem + 0.18vw, 0.6875rem);
+  font-weight: 600;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: rgb(var(--color-text-faint));
+}
+
+/* Page rule: thin editorial divider */
+.page-rule {
+  border: none;
+  border-top: 1px solid rgb(var(--color-border) / 0.12);
+  margin: clamp(2.5rem, 5vw, 4rem) 0;
+}
+
+/* ─── Components ─────────────────────────────────────────────────── */
+
+/* Input / Textarea — feels like writing on paper, not a console */
+.liminal-input {
+  width: 100%;
+  background: rgb(var(--color-surface-2));
+  border: 1px solid rgb(var(--color-border) / 0.14);
+  border-radius: 3px;
+  padding: 0.75rem 1rem;
+  color: rgb(var(--color-text));
+  font-size: clamp(0.875rem, 0.8rem + 0.35vw, 1rem);
+  line-height: 1.65;
+  transition: border-color 160ms ease;
+  outline: none;
+}
+
+.liminal-input::placeholder {
+  color: rgb(var(--color-text-faint));
+}
+
+.liminal-input:focus {
+  border-color: rgb(var(--color-gold) / 0.42);
+  /* no glow — a quiet focus ring */
+}
+
+/* Primary button — old brass, calm and precise */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.5rem;
+  background: rgb(var(--color-gold));
+  color: rgb(20 18 14);
+  font-size: clamp(0.875rem, 0.8rem + 0.3vw, 0.9375rem);
+  font-weight: 500;
+  border-radius: 3px;
+  border: none;
+  cursor: pointer;
+  letter-spacing: 0.01em;
+  transition: background 160ms ease;
+  white-space: nowrap;
+}
+
+.btn-primary:hover {
+  background: rgb(var(--color-gold-hover));
+}
+
+.btn-primary:active {
+  background: rgb(var(--color-gold-muted));
+}
+
+.btn-primary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Ghost button — transparent, text-based */
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.875rem;
+  background: transparent;
+  color: rgb(var(--color-text-muted));
+  font-size: clamp(0.875rem, 0.8rem + 0.3vw, 0.9375rem);
+  border-radius: 3px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: color 160ms ease, border-color 160ms ease;
+  white-space: nowrap;
+}
+
+.btn-ghost:hover {
+  color: rgb(var(--color-text));
+  border-color: rgb(var(--color-border) / 0.14);
+}
+
+/* Quiet card — flat surface, minimal chrome */
+.liminal-card {
+  background: rgb(var(--color-surface));
+  border: 1px solid rgb(var(--color-border) / 0.1);
+  border-radius: 4px;
+  transition: border-color 180ms ease;
+}
+
+.liminal-card:hover {
+  border-color: rgb(var(--color-border) / 0.2);
+}
+
+/* Section divider */
+.liminal-divider {
+  border: none;
+  border-top: 1px solid rgb(var(--color-border) / 0.1);
+  margin: 2rem 0;
+}
+
+/* ─── Output Section Primitives ──────────────────────────────────── */
+/* Flat, ruled — editorial, not boxed */
+
+.output-section {
+  /* Container only — no background, no border, no radius */
+}
+
+/* Section label: small rule + uppercase caption */
+.output-label {
+  display: block;
+  font-size: 0.5875rem;
+  font-weight: 600;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid currentColor;
+  opacity: 0.55;
+  margin-bottom: 1.125rem;
+}
+
+/* Bullet list — em-dash style */
+.output-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.output-list li {
+  padding-left: 1.25rem;
+  position: relative;
+  color: rgb(var(--color-text-muted));
+  font-size: clamp(0.875rem, 0.8rem + 0.3vw, 1rem);
+  line-height: 1.68;
+}
+
+.output-list li::before {
+  content: '—';
+  position: absolute;
+  left: 0;
+  color: rgb(var(--color-text-faint));
+}
+
+/* Skeleton loader */
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    rgb(var(--color-surface-2)) 25%,
+    rgb(var(--color-surface-3)) 50%,
+    rgb(var(--color-surface-2)) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: 3px;
+}
+
+/* Loading spinner */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 1.5px solid rgb(var(--color-gold) / 0.18);
+  border-top-color: rgb(var(--color-gold) / 0.65);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  flex-shrink: 0;
+}
+
+/* Inline error / success messages */
+.inline-error {
+  color: rgb(var(--color-error));
+  font-size: clamp(0.875rem, 0.8rem + 0.3vw, 1rem);
+  padding: 0.6875rem 0.875rem;
+  background: rgb(var(--color-error) / 0.06);
+  border-radius: 3px;
+  border-left: 2px solid rgb(var(--color-error) / 0.4);
+}
+
+/* Fade-in for results */
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-result {
+  animation: fadeSlideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ─── Tool Entry Cards (homepage) ────────────────────────────────── */
+
+.tool-entry {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4375rem;
+  text-decoration: none;
+  padding: 1.375rem 0 2rem;
+  border-top: 1.5px solid;       /* color set inline per tool */
+  transition: opacity 150ms ease;
+}
+
+/* The tool name gets a subtle color lift on hover */
+.tool-entry:hover .tool-entry-name {
+  color: rgb(var(--color-text));
+}
+
+.tool-entry-glyph {
+  font-family: var(--font-display), Georgia, serif;
+  font-style: italic;
+  font-size: 0.6875rem;
+  line-height: 1;
+  opacity: 0.5;
+}
+
+.tool-entry-name {
+  font-family: var(--font-display), Georgia, serif;
+  font-size: clamp(1.0625rem, 0.85rem + 0.65vw, 1.3125rem);
+  font-weight: 500;
+  line-height: 1.2;
+  color: rgb(var(--color-text) / 0.92);
+  margin-top: 0.125rem;
+  transition: color 160ms ease;
+}
+
+.tool-entry-tagline {
+  font-family: var(--font-display), Georgia, serif;
+  font-style: italic;
+  font-size: clamp(0.875rem, 0.8rem + 0.25vw, 0.9375rem);
+  line-height: 1.35;
+}
+
+.tool-entry-blurb {
+  font-size: clamp(0.8125rem, 0.76rem + 0.18vw, 0.875rem);
+  color: rgb(var(--color-text-faint));
+  line-height: 1.68;
+  margin-top: 0.1875rem;
+}
+
+.tool-entry-cta {
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  margin-top: 0.375rem;
+  opacity: 0.45;
+}
+
+/* ─── Tool grid — 2-column editorial list ────────────────────────── */
+
+.tools-columns {
+  display: flex;
+  gap: 0 2.5rem;
+  margin-top: 1.75rem;
+}
+
+.tools-col {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.tools-col + .tools-col {
+  padding-left: 2.5rem;
+  border-left: 1px solid rgb(var(--color-border) / 0.08);
+}
+
+@media (max-width: 640px) {
+  .tools-columns {
+    flex-direction: column;
+    gap: 0;
+  }
+  .tools-col + .tools-col {
+    padding-left: 0;
+    border-left: none;
+  }
+}
+
+/* ─── sr-only ────────────────────────────────────────────────────── */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
