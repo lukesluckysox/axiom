@@ -122,8 +122,12 @@ router.get('/sso-token', (req: Request, res: Response) => {
 
   try {
     const payload = jwt.verify(token, JWT_SECRET) as { userId: number; username: string };
+
+    // Fetch the user's real email so sub-apps can look up existing accounts
+    const user = db.select({ email: users.email }).from(users).where(eq(users.id, payload.userId)).get();
+
     const ssoToken = jwt.sign(
-      { userId: payload.userId, username: payload.username, sso: true },
+      { userId: payload.userId, username: payload.username, email: user?.email ?? null, sso: true },
       JWT_SECRET,
       { expiresIn: '2m' }
     );

@@ -1587,17 +1587,27 @@
         var hasSso = link.getAttribute('data-has-sso') === 'true';
 
         if (hasSso) {
+          // Open a blank window SYNCHRONOUSLY (inside the click handler, before
+          // any await) so mobile browsers don’t treat it as a blocked popup.
+          // Then navigate it to the SSO URL once the token is fetched.
+          var newWin = window.open('about:blank', '_blank');
           try {
             var res = await fetch('/api/auth/sso-token', { credentials: 'same-origin' });
+            var finalDest = dest;
             if (res.ok) {
               var data = await res.json();
               var origin = new URL(dest).origin;
-              dest = origin + '/api/auth/sso?token=' + encodeURIComponent(data.token);
+              finalDest = origin + '/api/auth/sso?token=' + encodeURIComponent(data.token);
             }
-          } catch { /* fallback: open original URL without SSO */ }
+            if (newWin) { newWin.location.href = finalDest; }
+            else { window.open(finalDest, '_blank'); }
+          } catch {
+            if (newWin) { newWin.location.href = dest; }
+            else { window.open(dest, '_blank'); }
+          }
+        } else {
+          window.open(dest, '_blank', 'noopener,noreferrer');
         }
-
-        window.open(dest, '_blank', 'noopener,noreferrer');
       });
     });
   });
