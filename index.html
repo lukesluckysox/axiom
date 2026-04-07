@@ -522,6 +522,26 @@
       letter-spacing: .12em;
       text-transform: uppercase;
       color: var(--faint);
+      display: flex;
+      align-items: center;
+      gap: .375rem;
+    }
+    .card__status--live::before {
+      content: '';
+      display: inline-block;
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: var(--gold);
+      opacity: .8;
+      flex-shrink: 0;
+    }
+    .card__cta--live {
+      color: var(--gold);
+      border-color: rgba(255,209,102,.28);
+    }
+    .card__cta--live:hover {
+      background: var(--gold-dim);
+      border-color: rgba(255,209,102,.5);
     }
     .card__cta {
       display: inline-flex;
@@ -1078,9 +1098,8 @@
       </div>
       <p class="card__desc">The threshold instrument. Liminal surfaces assumptions you did not know you held — the inherited frameworks, silent priors, and borrowed certainties that quietly shape every judgment. Where inquiry begins and nothing is taken as given.</p>
       <div class="card__foot">
-        <span class="card__status">Awaiting deployment</span>
-        <!-- TOOL_URL_LIMINAL: replace href with your Railway URL e.g. https://liminal.up.railway.app -->
-        <a href="https://github.com/lukesluckysox/liminal" target="_blank" rel="noopener noreferrer" class="card__cta" aria-label="Enter Liminal">
+        <span class="card__status card__status--live">Live</span>
+        <a href="https://liminal-app.up.railway.app/" target="_blank" rel="noopener noreferrer" class="card__cta card__cta--live" aria-label="Enter Liminal">
           Enter
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
         </a>
@@ -1096,8 +1115,8 @@
       </div>
       <p class="card__desc">The pattern instrument. Parallax reads across time — your writing, responses, and choices — to surface recurring structures in thought, emotion, and behavior. What persists beneath the noise is what matters. What repeats is what you are.</p>
       <div class="card__foot">
-        <span class="card__status">In development</span>
-        <a href="#" class="card__cta" aria-label="Enter Parallax">
+        <span class="card__status card__status--live">Live</span>
+        <a href="https://parallaxapp.up.railway.app/#/" target="_blank" rel="noopener noreferrer" class="card__cta card__cta--live" aria-label="Enter Parallax">
           Enter
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
         </a>
@@ -1113,9 +1132,8 @@
       </div>
       <p class="card__desc">The experimental instrument. Praxis converts insight into lived experiment. If Liminal surfaces the question and Parallax reveals the pattern, Praxis asks: what remains true when tested against experience, and what dissolves under contact with reality?</p>
       <div class="card__foot">
-        <span class="card__status">Awaiting deployment</span>
-        <!-- TOOL_URL_PRAXIS: replace href with your Railway URL e.g. https://praxis.up.railway.app -->
-        <a href="https://github.com/lukesluckysox/praxis" target="_blank" rel="noopener noreferrer" class="card__cta" aria-label="Enter Praxis">
+        <span class="card__status card__status--live">Live</span>
+        <a href="https://praxis-production-da89.up.railway.app/" target="_blank" rel="noopener noreferrer" class="card__cta card__cta--live" aria-label="Enter Praxis">
           Enter
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
         </a>
@@ -1131,9 +1149,8 @@
       </div>
       <p class="card__desc">The synthesis instrument. Axiom receives the outputs of the other three and distills them into durable principles, active tensions, and earned doctrines — the raw material of a personal constitution built from tested experience, not received wisdom.</p>
       <div class="card__foot">
-        <span class="card__status">Awaiting deployment</span>
-        <!-- TOOL_URL_AXIOM: replace href with your Railway URL e.g. https://axiom.up.railway.app -->
-        <a href="https://github.com/lukesluckysox/axiomtool" target="_blank" rel="noopener noreferrer" class="card__cta" aria-label="Enter Axiom">
+        <span class="card__status card__status--live">Live</span>
+        <a href="https://axiomtool-production.up.railway.app/#/" target="_blank" rel="noopener noreferrer" class="card__cta card__cta--live" aria-label="Enter Axiom">
           Enter
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
         </a>
