@@ -76,9 +76,9 @@ function detectSignals(content: string): { eventType: string; confidence: number
   tensionScore = Math.min(tensionScore, 1.0);
   hypothesisScore = Math.min(hypothesisScore, 1.0);
 
-  if (beliefScore >= 0.4) results.push({ eventType: 'belief_candidate', confidence: beliefScore });
-  if (tensionScore >= 0.4) results.push({ eventType: 'tension_candidate', confidence: tensionScore });
-  if (hypothesisScore >= 0.4) results.push({ eventType: 'hypothesis_candidate', confidence: hypothesisScore });
+  if (beliefScore >= 0.3) results.push({ eventType: 'belief_candidate', confidence: beliefScore });
+  if (tensionScore >= 0.3) results.push({ eventType: 'tension_candidate', confidence: tensionScore });
+  if (hypothesisScore >= 0.3) results.push({ eventType: 'hypothesis_candidate', confidence: hypothesisScore });
 
   return results;
 }

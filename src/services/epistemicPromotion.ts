@@ -2,6 +2,7 @@ import crypto from 'crypto';
 import { eq, and, inArray } from 'drizzle-orm';
 import {
   db,
+  users,
   epistemicEvents,
   epistemicCandidates,
   axiomStatements,
@@ -18,6 +19,36 @@ function uid(): string {
 }
 
 const now = () => new Date().toISOString();
+
+// ─── Sensitivity Thresholds ──────────────────────────────────────────────────
+
+type Sensitivity = 'low' | 'medium' | 'high';
+
+interface SensitivityThresholds {
+  beliefSimilarMin: number;  // min similar events before promoting belief candidate
+  patternFreq: number;       // min frequency for Parallax pattern candidates
+  patternCtx: number;        // min context days for Parallax pattern candidates
+  patternConf: number;       // min confidence for Parallax pattern candidates
+  tensionConf: number;       // min confidence for tension candidates
+  hypothesisConf: number;    // min confidence for hypothesis candidates
+}
+
+const SENSITIVITY_THRESHOLDS: Record<Sensitivity, SensitivityThresholds> = {
+  low:    { beliefSimilarMin: 0, patternFreq: 2, patternCtx: 1, patternConf: 0.2, tensionConf: 0.1, hypothesisConf: 0.2 },
+  medium: { beliefSimilarMin: 1, patternFreq: 3, patternCtx: 2, patternConf: 0.3, tensionConf: 0.3, hypothesisConf: 0.3 },
+  high:   { beliefSimilarMin: 2, patternFreq: 5, patternCtx: 3, patternConf: 0.7, tensionConf: 0.5, hypothesisConf: 0.5 },
+};
+
+function getUserSensitivity(userId: string): SensitivityThresholds {
+  try {
+    const uid = parseInt(userId, 10);
+    const user = db.select().from(users).where(eq(users.id, isNaN(uid) ? 0 : uid)).get();
+    const s = ((user as Record<string, unknown>)?.sensitivity as Sensitivity) || 'medium';
+    return SENSITIVITY_THRESHOLDS[s] ?? SENSITIVITY_THRESHOLDS.medium;
+  } catch {
+    return SENSITIVITY_THRESHOLDS.medium;
+  }
+}
 
 // ─── processEvent ────────────────────────────────────────────────────────────
 // Called after every event insert. Applies threshold logic and auto-promotes
@@ -72,7 +103,8 @@ async function processLiminalEvent(event: EpistemicEvent): Promise<void> {
         return false;
       });
 
-      if (semanticallyRelated.length >= 1) {
+      const thresh = getUserSensitivity(event.userId);
+      if (semanticallyRelated.length >= thresh.beliefSimilarMin) {
         // 2+ total (current + 1 similar)
         const allEventIds = [event.id, ...semanticallyRelated.map((e) => e.id)];
         const recurrenceScore = Math.min(allEventIds.length / 5, 1.0);
@@ -97,7 +129,8 @@ async function processLiminalEvent(event: EpistemicEvent): Promise<void> {
       break;
     }
     case 'tension_candidate': {
-      if (event.confidence >= 0.3) {
+      const tThresh = getUserSensitivity(event.userId);
+      if (event.confidence >= tThresh.tensionConf) {
         const payload = safeParse(event.payload, {}) as Record<string, string>;
         await createCandidate({
           userId: event.userId,
@@ -116,7 +149,8 @@ async function processLiminalEvent(event: EpistemicEvent): Promise<void> {
     }
     case 'hypothesis_candidate': {
       const payload = safeParse(event.payload, {}) as Record<string, unknown>;
-      if (payload.causalStructure || event.confidence >= 0.4) {
+      const hThresh = getUserSensitivity(event.userId);
+      if (payload.causalStructure || event.confidence >= hThresh.hypothesisConf) {
         await createCandidate({
           userId: event.userId,
           candidateType: 'hypothesis_candidate',
@@ -144,7 +178,8 @@ async function processParallaxEvent(event: EpistemicEvent): Promise<void> {
     case 'pattern_candidate': {
       const freq = typeof payload.frequency === 'number' ? payload.frequency : 0;
       const ctxCount = typeof payload.contextCount === 'number' ? payload.contextCount : 0;
-      if (freq >= 3 && ctxCount >= 2 && event.confidence >= 0.7) {
+      const pThresh = getUserSensitivity(event.userId);
+      if (freq >= pThresh.patternFreq && ctxCount >= pThresh.patternCtx && event.confidence >= pThresh.patternConf) {
         await createCandidate({
           userId: event.userId,
           candidateType: 'doctrine_candidate',

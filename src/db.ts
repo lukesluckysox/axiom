@@ -19,6 +19,7 @@ export const users = sqliteTable('users', {
   username:     text('username').notNull().unique(),
   email:        text('email').notNull().unique(),
   passwordHash: text('password_hash').notNull(),
+  sensitivity:  text('sensitivity').default('medium'),
   createdAt:    text('created_at').notNull(),
 });
 
@@ -207,5 +208,10 @@ function runEpistemicMigrations() {
 }
 
 runEpistemicMigrations();
+
+// ─── User Column Migrations ───────────────────────────────────────────────────
+try {
+  sqlite.exec(`ALTER TABLE users ADD COLUMN sensitivity TEXT DEFAULT 'medium'`);
+} catch { /* column already exists */ }
 
 console.log(`[db] Connected: ${dbPath}`);

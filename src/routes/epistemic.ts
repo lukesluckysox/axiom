@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import { eq, and, inArray, sql } from 'drizzle-orm';
 import {
   db,
+  users,
   epistemicEvents,
   epistemicCandidates,
   axiomStatements,
@@ -533,6 +534,128 @@ router.post('/seed/axiom', async (req: Request, res: Response) => {
   } catch (err) {
     console.error('[epistemic/seed/axiom]', err);
     return res.status(500).json({ error: 'Axiom seed failed.' });
+  }
+});
+
+// ─── GET /sensitivity/:userId ────────────────────────────────────────────────────────
+
+router.get('/sensitivity/:userId', (req: Request, res: Response) => {
+  const auth = requireAuth(req, res);
+  if (!auth) return;
+
+  const { userId } = req.params;
+
+  try {
+    const uid = parseInt(userId, 10);
+    const user = db.select().from(users).where(eq(users.id, isNaN(uid) ? 0 : uid)).get();
+    if (!user) return res.status(404).json({ error: 'User not found.' });
+    return res.json({ sensitivity: (user as Record<string, unknown>).sensitivity || 'medium' });
+  } catch (err) {
+    console.error('[epistemic/sensitivity/get]', err);
+    return res.status(500).json({ error: 'Failed to get sensitivity.' });
+  }
+});
+
+// ─── POST /sensitivity/:userId ────────────────────────────────────────────────────────
+
+router.post('/sensitivity/:userId', (req: Request, res: Response) => {
+  const auth = requireAuth(req, res);
+  if (!auth) return;
+
+  const { userId } = req.params;
+  const { sensitivity } = req.body as { sensitivity: string };
+
+  if (!['low', 'medium', 'high'].includes(sensitivity)) {
+    return res.status(400).json({ error: 'sensitivity must be low, medium, or high.' });
+  }
+
+  try {
+    const uid = parseInt(userId, 10);
+    db.update(users)
+      .set({ sensitivity } as Record<string, unknown>)
+      .where(eq(users.id, isNaN(uid) ? 0 : uid))
+      .run();
+    return res.json({ sensitivity });
+  } catch (err) {
+    console.error('[epistemic/sensitivity/post]', err);
+    return res.status(500).json({ error: 'Failed to update sensitivity.' });
+  }
+});
+
+// ─── POST /reprocess/:userId ─────────────────────────────────────────────────────────
+// Re-evaluates all existing events against current sensitivity thresholds.
+// Clears open/queued candidates first, then re-runs processEvent on all events.
+
+router.post('/reprocess/:userId', async (req: Request, res: Response) => {
+  const auth = requireAuth(req, res);
+  if (!auth) return;
+
+  const { userId } = req.params;
+
+  try {
+    // Clear non-seeded open/queued candidates
+    const candidatesToDelete = db
+      .select()
+      .from(epistemicCandidates)
+      .where(
+        and(
+          eq(epistemicCandidates.userId, userId),
+          inArray(epistemicCandidates.status, ['open', 'queued_for_axiom', 'queued_for_praxis'])
+        )
+      )
+      .all()
+      .filter(c => !c.seeded);
+
+    for (const c of candidatesToDelete) {
+      db.delete(epistemicCandidates).where(eq(epistemicCandidates.id, c.id)).run();
+    }
+
+    // Clear non-seeded open prompts
+    const promptsToDelete = db
+      .select()
+      .from(promptQueue)
+      .where(and(eq(promptQueue.userId, userId), eq(promptQueue.status, 'open')))
+      .all()
+      .filter(p => !p.seeded);
+
+    for (const p of promptsToDelete) {
+      db.delete(promptQueue).where(eq(promptQueue.id, p.id)).run();
+    }
+
+    // Re-run processEvent on all events for this user
+    const events = db
+      .select()
+      .from(epistemicEvents)
+      .where(eq(epistemicEvents.userId, userId))
+      .all();
+
+    let promoted = 0;
+    for (const event of events) {
+      await processEvent(event);
+      promoted++;
+    }
+
+    // Count new candidates
+    const newCandidates = db
+      .select()
+      .from(epistemicCandidates)
+      .where(
+        and(
+          eq(epistemicCandidates.userId, userId),
+          inArray(epistemicCandidates.status, ['open', 'queued_for_axiom', 'queued_for_praxis'])
+        )
+      )
+      .all();
+
+    return res.json({
+      clearedCandidates: candidatesToDelete.length,
+      clearedPrompts: promptsToDelete.length,
+      eventsReprocessed: promoted,
+      newCandidates: newCandidates.length,
+    });
+  } catch (err) {
+    console.error('[epistemic/reprocess]', err);
+    return res.status(500).json({ error: 'Reprocess failed.' });
   }
 });
 
