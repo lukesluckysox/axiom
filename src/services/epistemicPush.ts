@@ -176,11 +176,27 @@ export async function flushEpistemicQueue(userId: string): Promise<{ pushed: num
       ))
       .all();
 
+    // Resolve sourceApp for each candidate via its sourceEventIds
+    // (candidateType alone is insufficient: Liminal belief_candidates and
+    //  Parallax pattern_candidates both produce doctrine_candidate type)
+    const candidateSourceApp = new Map<string, string>();
+    for (const c of allQueued) {
+      let eventIds: string[] = [];
+      try { eventIds = JSON.parse((c as any).sourceEventIds || '[]'); } catch {}
+      if (eventIds.length > 0) {
+        const ev = sqlite
+          .prepare('SELECT source_app FROM epistemic_events WHERE id = ? LIMIT 1')
+          .get(eventIds[0]) as { source_app: string } | undefined;
+        if (ev) candidateSourceApp.set(c.id, ev.source_app);
+      }
+    }
+
+    // Split by source app (resolved above), not by candidateType
     const liminalCandidates = allQueued.filter(c =>
-      ['belief_candidate', 'tension_candidate'].includes(c.candidateType)
+      candidateSourceApp.get(c.id) === 'liminal'
     );
     const parallaxCandidates = allQueued.filter(c =>
-      ['doctrine_candidate', 'pattern_candidate'].includes(c.candidateType)
+      candidateSourceApp.get(c.id) === 'parallax'
     );
 
     const pairs = findConvergencePairs(liminalCandidates, parallaxCandidates);
