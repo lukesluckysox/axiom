@@ -945,145 +945,124 @@
        AUTH GATE
     ───────────────────────────────────────────── */
     .gate {
-      position: fixed;
-      inset: 0;
-      z-index: 9999;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: var(--bg);
-      padding: var(--sp-8);
-      opacity: 0;
-      visibility: hidden;
-    }
-    .gate--active {
-      opacity: 1;
-      visibility: visible;
-      animation: gate-in .7s cubic-bezier(.22,.8,.32,1) both;
+      position: fixed; inset: 0; z-index: 9999;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--bg); padding: var(--sp-8);
     }
     .gate--exit {
       animation: gate-exit .55s cubic-bezier(.4,0,1,1) both;
       pointer-events: none;
-    }
-    @keyframes gate-in {
-      from { opacity: 0; transform: scale(1.015); }
-      to   { opacity: 1; transform: scale(1); }
     }
     @keyframes gate-exit {
       from { opacity: 1; transform: translateY(0) scale(1); }
       to   { opacity: 0; transform: translateY(-32px) scale(.985); }
     }
     .gate__inner {
-      width: 100%;
-      max-width: 380px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: var(--sp-6);
-      text-align: center;
+      width: 100%; max-width: 400px;
+      display: flex; flex-direction: column; align-items: center;
+      gap: var(--sp-5); text-align: center;
     }
     .gate__mark { color: var(--text); }
     .gate__wordmark {
       font-family: 'Cormorant', serif;
       font-size: clamp(1.6rem, 1.2rem + 1vw, 2.2rem);
-      font-weight: 300;
-      letter-spacing: .32em;
-      color: var(--text);
-      text-transform: uppercase;
-      margin: 0;
+      font-weight: 300; letter-spacing: .32em;
+      color: var(--text); text-transform: uppercase; margin: 0;
     }
-    .gate__rule {
-      width: 2rem;
-      height: 1px;
-      background: rgba(141,153,174,.2);
-      border: none;
-      margin: calc(var(--sp-2) * -1) 0;
-    }
+    .gate__rule { width: 2rem; height: 1px; background: rgba(141,153,174,.2); border: none; }
     .gate__phrase {
-      font-family: 'Cormorant', serif;
-      font-size: var(--text-base);
-      color: var(--muted);
-      font-style: italic;
-      font-weight: 300;
-      letter-spacing: .02em;
-      margin: 0;
-      line-height: 1.55;
-      max-width: 28ch;
+      font-family: 'Cormorant', serif; font-size: var(--text-base);
+      color: var(--muted); font-style: italic; font-weight: 300;
+      letter-spacing: .02em; margin: 0; line-height: 1.55;
     }
-    .gate__form {
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      gap: var(--sp-3);
-      margin-top: var(--sp-2);
+    .gate__loader { display: flex; align-items: center; justify-content: center; padding: var(--sp-2) 0; }
+    .gate__loader-dot {
+      width: 5px; height: 5px; border-radius: 50%;
+      background: var(--gold); opacity: .5;
+      animation: gate-pulse 1.4s ease-in-out infinite;
     }
+    @keyframes gate-pulse {
+      0%,100% { opacity: .25; transform: scale(.9); }
+      50%     { opacity: .8;  transform: scale(1.1); }
+    }
+    .gate__auth { width: 100%; display: none; flex-direction: column; gap: var(--sp-4); }
+    .gate__auth--visible { display: flex; }
+    .gate__tabs { display: flex; width: 100%; border-bottom: 1px solid rgba(141,153,174,.15); }
+    .gate__tab {
+      flex: 1; background: transparent; border: none; cursor: pointer;
+      padding: .5rem .75rem;
+      font-family: 'Satoshi', sans-serif; font-size: var(--text-xs);
+      letter-spacing: .1em; text-transform: uppercase;
+      color: var(--muted); position: relative;
+      transition: color .2s var(--ease);
+    }
+    .gate__tab::after {
+      content: ''; position: absolute; bottom: -1px; left: 0; right: 0;
+      height: 1px; background: var(--gold);
+      transform: scaleX(0); transition: transform .2s var(--ease);
+    }
+    .gate__tab--active { color: var(--text); }
+    .gate__tab--active::after { transform: scaleX(1); }
+    .gate__panel { width: 100%; display: flex; flex-direction: column; gap: .5rem; }
+    .gate__panel--hidden { display: none; }
     .gate__field {
-      display: flex;
-      align-items: stretch;
-      border: 1px solid rgba(141,153,174,.18);
-      border-radius: var(--r-md);
-      overflow: hidden;
+      border: 1px solid rgba(141,153,174,.18); border-radius: var(--r-md);
       background: rgba(255,255,255,.025);
       transition: border-color .2s var(--ease), box-shadow .2s var(--ease);
+      overflow: hidden;
     }
     .gate__field:focus-within {
       border-color: rgba(255,209,102,.38);
       box-shadow: 0 0 0 3px rgba(255,209,102,.07);
     }
     .gate__input {
-      flex: 1;
-      background: transparent;
-      border: none;
-      outline: none;
-      padding: .75rem 1rem;
-      font-family: 'Satoshi', sans-serif;
-      font-size: var(--text-sm);
-      color: var(--text);
-      letter-spacing: .04em;
+      display: block; width: 100%; background: transparent;
+      border: none; outline: none; padding: .75rem 1rem;
+      font-family: 'Satoshi', sans-serif; font-size: var(--text-sm);
+      color: var(--text); letter-spacing: .04em; box-sizing: border-box;
     }
     .gate__input::placeholder {
-      color: var(--muted);
-      opacity: .55;
-      letter-spacing: .1em;
-      font-size: .875em;
-      text-transform: uppercase;
+      color: var(--muted); opacity: .5;
+      letter-spacing: .08em; text-transform: uppercase; font-size: .875em;
     }
     .gate__submit {
-      background: transparent;
-      border: none;
-      border-left: 1px solid rgba(141,153,174,.18);
-      cursor: pointer;
-      padding: .75rem 1.125rem;
-      color: var(--muted);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: color .2s var(--ease), background .2s var(--ease);
-      flex-shrink: 0;
+      width: 100%; background: transparent;
+      border: 1px solid rgba(141,153,174,.2); border-radius: var(--r-md);
+      cursor: pointer; padding: .75rem 1rem; margin-top: .25rem;
+      font-family: 'Satoshi', sans-serif; font-size: var(--text-xs);
+      color: var(--muted); letter-spacing: .12em; text-transform: uppercase;
+      display: flex; align-items: center; justify-content: center; gap: var(--sp-2);
+      transition: color .2s var(--ease), background .2s var(--ease), border-color .2s var(--ease);
     }
-    .gate__submit:hover {
-      color: var(--gold);
-      background: var(--gold-dim);
-    }
+    .gate__submit:hover:not(:disabled) { color: var(--gold); background: var(--gold-dim); border-color: rgba(255,209,102,.3); }
+    .gate__submit:disabled { opacity: .4; cursor: not-allowed; }
     .gate__error {
-      font-family: 'Satoshi', sans-serif;
-      font-size: var(--text-xs);
-      color: rgba(255,209,102,.65);
-      letter-spacing: .08em;
-      text-transform: uppercase;
-      min-height: 1.2em;
-      text-align: center;
-      margin: 0;
+      font-family: 'Satoshi', sans-serif; font-size: var(--text-xs);
+      color: rgba(255,209,102,.65); letter-spacing: .08em;
+      text-transform: uppercase; min-height: 1.2em; text-align: center; margin: 0;
     }
     .gate__error:empty { opacity: 0; }
     @keyframes gate-shake {
       0%,100% { transform: translateX(0); }
-      20%     { transform: translateX(-10px); }
-      40%     { transform: translateX(10px); }
-      60%     { transform: translateX(-7px); }
-      80%     { transform: translateX(7px); }
+      20% { transform: translateX(-10px); } 40% { transform: translateX(10px); }
+      60% { transform: translateX(-7px);  } 80% { transform: translateX(7px);  }
     }
     .gate__inner--shake { animation: gate-shake .4s ease both; }
+    .nav__user {
+      display: none; align-items: center; gap: var(--sp-3);
+      font-family: 'Satoshi', sans-serif; font-size: var(--text-xs);
+      letter-spacing: .08em; color: var(--muted);
+    }
+    .nav__user--visible { display: flex; }
+    .nav__username { color: var(--text); }
+    .nav__signout {
+      background: transparent; border: 1px solid rgba(141,153,174,.2);
+      border-radius: var(--r-sm); cursor: pointer; padding: .25rem .6rem;
+      color: var(--muted); font-family: 'Satoshi', sans-serif; font-size: var(--text-xs);
+      letter-spacing: .08em; text-transform: uppercase;
+      transition: color .2s var(--ease), border-color .2s var(--ease);
+    }
+    .nav__signout:hover { color: var(--text); border-color: rgba(141,153,174,.4); }
   </style>
 </head>
 <body>
@@ -1091,10 +1070,9 @@
 <!-- ╔══════════════════════════════════════════
      AUTH GATE
 ═══════════════════════════════════════════╗ -->
-<div id="lumen-gate" class="gate" role="dialog" aria-modal="true" aria-label="Lumen — enter passphrase">
+<div id="lumen-gate" class="gate" role="dialog" aria-modal="true" aria-label="Lumen — sign in">
   <div class="gate__inner" id="gate-inner">
 
-    <!-- Mark -->
     <div class="gate__mark" aria-hidden="true">
       <svg width="72" height="72" viewBox="0 0 32 32" fill="none">
         <circle cx="16" cy="16" r="14" stroke="currentColor" stroke-width=".5" opacity=".15"/>
@@ -1115,42 +1093,69 @@
     <hr class="gate__rule" aria-hidden="true" />
     <p class="gate__phrase">Where reflection becomes structure.</p>
 
-    <form class="gate__form" id="gate-form" novalidate>
-      <div class="gate__field">
-        <label for="gate-pass" class="sr-only">Passphrase</label>
-        <input
-          type="password"
-          id="gate-pass"
-          class="gate__input"
-          placeholder="Passphrase"
-          autocomplete="current-password"
-          spellcheck="false"
-          autofocus
-        />
-        <button type="submit" class="gate__submit" aria-label="Enter Lumen">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-            <path d="M5 12h14M12 5l7 7-7 7"/>
-          </svg>
-        </button>
+    <!-- Loading indicator — shown while /api/auth/me resolves -->
+    <div class="gate__loader" id="gate-loader" aria-label="Checking session">
+      <span class="gate__loader-dot"></span>
+    </div>
+
+    <!-- Auth form — shown only if not authenticated -->
+    <div class="gate__auth" id="gate-auth">
+
+      <div class="gate__tabs" role="tablist">
+        <button class="gate__tab gate__tab--active" data-panel="panel-login" role="tab" aria-selected="true">Sign in</button>
+        <button class="gate__tab" data-panel="panel-register" role="tab" aria-selected="false">Register</button>
       </div>
+
+      <!-- Login -->
+      <div class="gate__panel" id="panel-login" role="tabpanel">
+        <form id="form-login" novalidate>
+          <div class="gate__field">
+            <label for="login-email" class="sr-only">Email</label>
+            <input type="email" id="login-email" class="gate__input" placeholder="Email" autocomplete="email" />
+          </div>
+          <div class="gate__field">
+            <label for="login-password" class="sr-only">Password</label>
+            <input type="password" id="login-password" class="gate__input" placeholder="Password" autocomplete="current-password" />
+          </div>
+          <button type="submit" class="gate__submit">
+            Enter Lumen
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </button>
+        </form>
+      </div>
+
+      <!-- Register -->
+      <div class="gate__panel gate__panel--hidden" id="panel-register" role="tabpanel">
+        <form id="form-register" novalidate>
+          <div class="gate__field">
+            <label for="reg-username" class="sr-only">Username</label>
+            <input type="text" id="reg-username" class="gate__input" placeholder="Username" autocomplete="username" />
+          </div>
+          <div class="gate__field">
+            <label for="reg-email" class="sr-only">Email</label>
+            <input type="email" id="reg-email" class="gate__input" placeholder="Email" autocomplete="email" />
+          </div>
+          <div class="gate__field">
+            <label for="reg-password" class="sr-only">Password</label>
+            <input type="password" id="reg-password" class="gate__input" placeholder="Password" autocomplete="new-password" />
+          </div>
+          <div class="gate__field">
+            <label for="reg-confirm" class="sr-only">Confirm password</label>
+            <input type="password" id="reg-confirm" class="gate__input" placeholder="Confirm password" autocomplete="new-password" />
+          </div>
+          <button type="submit" class="gate__submit">
+            Create account
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </button>
+        </form>
+      </div>
+
       <p class="gate__error" id="gate-error" role="alert"></p>
-    </form>
+
+    </div><!-- /gate__auth -->
 
   </div>
 </div>
-<script>
-/* ── Auth gate: immediate auth check (runs before paint) ── */
-(function () {
-  var gate = document.getElementById('lumen-gate');
-  if (!gate) return;
-  if (window.name === 'lumen:auth:granted') {
-    gate.remove();
-  } else {
-    document.body.style.overflow = 'hidden';
-    gate.classList.add('gate--active');
-  }
-})();
-</script>
 
 <!-- ╔══════════════════════════════════════════
      NAV
@@ -1197,6 +1202,10 @@
           Enter
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
         </a>
+        <div class="nav__user" id="nav-user" aria-live="polite">
+          <span class="nav__username"></span>
+          <button class="nav__signout" id="nav-signout" aria-label="Sign out of Lumen">Sign out</button>
+        </div>
       </div>
 
     </div>
@@ -1555,55 +1564,147 @@
 
 
 <script>
-/* ── Auth gate: form handler ── */
+/* ── Auth gate ── */
 (function () {
-  var gate  = document.getElementById('lumen-gate');
-  if (!gate) return; // already removed — user is authenticated
+  var gate   = document.getElementById('lumen-gate');
+  var inner  = document.getElementById('gate-inner');
+  var loader = document.getElementById('gate-loader');
+  var auth   = document.getElementById('gate-auth');
+  var error  = document.getElementById('gate-error');
+  if (!gate) return;
 
-  var form  = document.getElementById('gate-form');
-  var input = document.getElementById('gate-pass');
-  var error = document.getElementById('gate-error');
-  var inner = document.getElementById('gate-inner');
-
-  /* ── Passphrase configuration ─────────────────────────────────────────────
-     Default passphrase: "lumen"
-     To change: compute SHA-256 of your new passphrase at
-     https://emn178.github.io/online-tools/sha256.html
-     and replace the hash below.
-  ─────────────────────────────────────────────────────────────── */
-  var PASSPHRASE_HASH = '456f45fddc2e725c2948d03317e2262c2ec8e86745af28dc7b2221987b858b50';
-  /* ──────────────────────────────────────────────────────────────────── */
-
-  async function sha256(str) {
-    var buf  = new TextEncoder().encode(str);
-    var hash = await crypto.subtle.digest('SHA-256', buf);
-    return Array.from(new Uint8Array(hash)).map(function(b) {
-      return b.toString(16).padStart(2, '0');
-    }).join('');
+  /* ── Helpers ─────────────────────────────────── */
+  function showError(msg) {
+    error.textContent = msg;
+    inner.classList.remove('gate__inner--shake');
+    void inner.offsetWidth;
+    inner.classList.add('gate__inner--shake');
   }
 
-  form.addEventListener('submit', async function (e) {
-    e.preventDefault();
-    var val = input.value; // don't trim — passphrases may have intentional spacing
-    if (!val) { input.focus(); return; }
+  function dismissGate(username) {
+    document.body.style.overflow = '';
+    if (username) updateNavUser(username);
+    gate.classList.add('gate--exit');
+    gate.addEventListener('animationend', function () { gate.remove(); }, { once: true });
+  }
 
-    var hash = await sha256(val);
+  function showForm() {
+    loader.style.display = 'none';
+    auth.classList.add('gate__auth--visible');
+    document.body.style.overflow = 'hidden';
+    var firstInput = auth.querySelector('input');
+    if (firstInput) firstInput.focus();
+  }
 
-    if (hash === PASSPHRASE_HASH) {
-      window.name = 'lumen:auth:granted';
-      document.body.style.overflow = '';
-      gate.classList.add('gate--exit');
-      gate.addEventListener('animationend', function () { gate.remove(); }, { once: true });
-    } else {
-      error.textContent = 'Incorrect passphrase.';
-      input.value = '';
-      input.focus();
-      inner.classList.remove('gate__inner--shake');
-      // Force reflow to re-trigger animation
-      void inner.offsetWidth;
-      inner.classList.add('gate__inner--shake');
-    }
+  /* ── Auth check on load ──────────────────────── */
+  document.addEventListener('DOMContentLoaded', function () {
+    fetch('/api/auth/me', { credentials: 'same-origin' })
+      .then(function (res) {
+        if (res.ok) return res.json().then(function (d) { dismissGate(d.username); });
+        showForm();
+      })
+      .catch(function () {
+        // No backend (static preview) — dismiss immediately
+        gate.remove();
+      });
   });
+
+  /* ── Tab switching ───────────────────────────── */
+  document.querySelectorAll('.gate__tab').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var panelId = btn.getAttribute('data-panel');
+      document.querySelectorAll('.gate__tab').forEach(function (t) {
+        t.classList.remove('gate__tab--active');
+        t.setAttribute('aria-selected', 'false');
+      });
+      document.querySelectorAll('.gate__panel').forEach(function (p) {
+        p.classList.add('gate__panel--hidden');
+      });
+      btn.classList.add('gate__tab--active');
+      btn.setAttribute('aria-selected', 'true');
+      var panel = document.getElementById(panelId);
+      if (panel) {
+        panel.classList.remove('gate__panel--hidden');
+        var firstInput = panel.querySelector('input');
+        if (firstInput) firstInput.focus();
+      }
+      error.textContent = '';
+    });
+  });
+
+  /* ── Login ───────────────────────────────────── */
+  var formLogin = document.getElementById('form-login');
+  if (formLogin) {
+    formLogin.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      var email    = document.getElementById('login-email').value.trim();
+      var password = document.getElementById('login-password').value;
+      if (!email || !password) { showError('Email and password required.'); return; }
+
+      var btn = formLogin.querySelector('.gate__submit');
+      btn.disabled = true;
+      btn.textContent = 'Signing in…';
+
+      try {
+        var res  = await fetch('/api/auth/login', {
+          method: 'POST', credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        });
+        var data = await res.json();
+        if (res.ok) { dismissGate(data.username); }
+        else { showError(data.error || 'Login failed.'); btn.disabled = false; btn.innerHTML = 'Enter Lumen <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>'; }
+      } catch { showError('Network error. Try again.'); btn.disabled = false; btn.innerHTML = 'Enter Lumen <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>'; }
+    });
+  }
+
+  /* ── Register ────────────────────────────────── */
+  var formRegister = document.getElementById('form-register');
+  if (formRegister) {
+    formRegister.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      var username = document.getElementById('reg-username').value.trim();
+      var email    = document.getElementById('reg-email').value.trim();
+      var password = document.getElementById('reg-password').value;
+      var confirm  = document.getElementById('reg-confirm').value;
+
+      if (!username || !email || !password || !confirm) { showError('All fields required.'); return; }
+      if (password !== confirm) { showError('Passwords do not match.'); return; }
+      if (password.length < 8) { showError('Password must be at least 8 characters.'); return; }
+
+      var btn = formRegister.querySelector('.gate__submit');
+      btn.disabled = true;
+      btn.textContent = 'Creating account…';
+
+      try {
+        var res  = await fetch('/api/auth/register', {
+          method: 'POST', credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, email, password }),
+        });
+        var data = await res.json();
+        if (res.ok) { dismissGate(data.username); }
+        else { showError(data.error || 'Registration failed.'); btn.disabled = false; btn.innerHTML = 'Create account <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>'; }
+      } catch { showError('Network error. Try again.'); btn.disabled = false; btn.innerHTML = 'Create account <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>'; }
+    });
+  }
+
+  /* ── Nav user ────────────────────────────────── */
+  function updateNavUser(username) {
+    var navUser = document.getElementById('nav-user');
+    if (!navUser) return;
+    var nameEl = navUser.querySelector('.nav__username');
+    if (nameEl) nameEl.textContent = username;
+    navUser.classList.add('nav__user--visible');
+  }
+
+  var signoutBtn = document.getElementById('nav-signout');
+  if (signoutBtn) {
+    signoutBtn.addEventListener('click', async function () {
+      await fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' });
+      location.reload();
+    });
+  }
 })();
 
 /* ── Theme toggle ── */

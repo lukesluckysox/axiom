@@ -22,3 +22,12 @@ Thumbs.db
 # Editor
 .vscode/
 .idea/
+
+# Lumen server build
+dist/
+
+# SQLite database (dev)
+lumen.db
+
+# Environment
+.env
