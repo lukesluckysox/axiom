@@ -42,7 +42,7 @@ const dbPath = process.env.RAILWAY_VOLUME_MOUNT_PATH
   ? `${process.env.RAILWAY_VOLUME_MOUNT_PATH}/lumen.db`
   : path.resolve(process.cwd(), 'lumen.db');
 
-const sqlite = new Database(dbPath);
+export const sqlite = new Database(dbPath);
 sqlite.pragma('journal_mode = WAL');
 sqlite.pragma('foreign_keys = ON');
 
@@ -213,5 +213,7 @@ runEpistemicMigrations();
 try {
   sqlite.exec(`ALTER TABLE users ADD COLUMN sensitivity TEXT DEFAULT 'medium'`);
 } catch { /* column already exists */ }
+
+try { sqlite.exec("ALTER TABLE epistemic_candidates ADD COLUMN convergence_group_id TEXT"); } catch (_e) {}
 
 console.log(`[db] Connected: ${dbPath}`);

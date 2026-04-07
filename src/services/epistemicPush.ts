@@ -1,6 +1,7 @@
-import { db } from '../db';
+import { db, sqlite } from '../db';
 import { epistemicCandidates } from '../schema/epistemic';
 import { eq, and } from 'drizzle-orm';
+import { findConvergencePairs, buildConvergencePayload } from '../services/epistemicConvergence.js';
 
 const AXIOM_API_URL = process.env.AXIOM_API_URL || 'https://axiomtool-production.up.railway.app';
 const PRAXIS_API_URL = process.env.PRAXIS_API_URL || 'https://praxis-production-da89.up.railway.app';
@@ -17,8 +18,8 @@ function confidenceToText(score: number): string {
 export async function pushCandidateToAxiomtool(candidate: typeof epistemicCandidates.$inferSelect): Promise<boolean> {
   try {
     // ── Provenance counts ────────────────────────────────────────────────────
-    const isParallax = ['doctrine_candidate', 'pattern_candidate'].includes(candidate.type);
-    const isLiminal  = ['belief_candidate', 'tension_candidate'].includes(candidate.type);
+    const isParallax = ['doctrine_candidate', 'pattern_candidate'].includes(candidate.candidateType);
+    const isLiminal  = ['belief_candidate', 'tension_candidate'].includes(candidate.candidateType);
 
     // Extract frequency if present in title: "×25", "× 25", "x25", "×25 check-ins"
     const freqMatch = candidate.title.match(/[×xX]\s*(\d+)/);
@@ -129,7 +130,7 @@ export async function pushCandidateToPraxis(candidate: typeof epistemicCandidate
       title: candidate.title.slice(0, 200),
       hypothesis: candidate.summary,
       design: 'Auto-generated from epistemic queue. Review and refine to structure your experiment.',
-      source: ['belief_candidate', 'tension_candidate', 'hypothesis_candidate'].includes(candidate.type) ? 'liminal' : 'parallax',
+      source: ['belief_candidate', 'tension_candidate', 'hypothesis_candidate'].includes(candidate.candidateType) ? 'liminal' : 'parallax',
       status: 'active',
       experimentConstraint: '',
       observation: '',
@@ -162,6 +163,63 @@ export async function flushEpistemicQueue(userId: string): Promise<{ pushed: num
   let axiomCount = 0;
   let praxisCount = 0;
 
+  // ── Convergence pass: pair Liminal + Parallax candidates before individual pushes ──
+  const pairedIds = new Set<string>();
+
+  try {
+    const allQueued = db
+      .select()
+      .from(epistemicCandidates)
+      .where(and(
+        eq(epistemicCandidates.userId, userId),
+        eq(epistemicCandidates.status, 'queued_for_axiom')
+      ))
+      .all();
+
+    const liminalCandidates = allQueued.filter(c =>
+      ['belief_candidate', 'tension_candidate'].includes(c.candidateType)
+    );
+    const parallaxCandidates = allQueued.filter(c =>
+      ['doctrine_candidate', 'pattern_candidate'].includes(c.candidateType)
+    );
+
+    const pairs = findConvergencePairs(liminalCandidates, parallaxCandidates);
+
+    for (const pair of pairs) {
+      const payload = buildConvergencePayload(pair.liminal, pair.parallax, pair.themes, userId);
+      try {
+        const res = await fetch(`${AXIOM_API_URL}/api/internal/from-lumen`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-lumen-internal-token': LUMEN_INTERNAL_TOKEN,
+          },
+          body: JSON.stringify(payload),
+        });
+        if (res.ok) {
+          const convergenceGroupId = Date.now().toString(36) + Math.random().toString(36).slice(2);
+          sqlite
+            .prepare(`UPDATE epistemic_candidates SET status = 'accepted', convergence_group_id = ?, updated_at = ? WHERE id = ?`)
+            .run(convergenceGroupId, new Date().toISOString(), pair.liminal.id);
+          sqlite
+            .prepare(`UPDATE epistemic_candidates SET status = 'accepted', convergence_group_id = ?, updated_at = ? WHERE id = ?`)
+            .run(convergenceGroupId, new Date().toISOString(), pair.parallax.id);
+          pairedIds.add(pair.liminal.id);
+          pairedIds.add(pair.parallax.id);
+          pushed++;
+          axiomCount++;
+        } else {
+          const text = await res.text().catch(() => '');
+          console.error(`[epistemicPush] Convergence push rejected for pair ${pair.liminal.id}/${pair.parallax.id}: ${res.status} ${text}`);
+        }
+      } catch (e) {
+        console.error('[epistemicPush] Convergence push error:', e);
+      }
+    }
+  } catch (e) {
+    console.error('[epistemicPush] Convergence pass error:', e);
+  }
+
   // Push doctrine_candidates to Axiomtool
   const axiomCandidates = db
     .select()
@@ -173,6 +231,8 @@ export async function flushEpistemicQueue(userId: string): Promise<{ pushed: num
     .all();
 
   for (const candidate of axiomCandidates) {
+    // Skip candidates already handled in convergence pass
+    if (pairedIds.has(candidate.id)) continue;
     const ok = await pushCandidateToAxiomtool(candidate);
     if (ok) {
       db.update(epistemicCandidates)

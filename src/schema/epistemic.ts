@@ -118,3 +118,6 @@ export const promptQueue = sqliteTable("prompt_queue", {
   seeded: integer("seeded", { mode: "boolean" }).notNull().default(false),
   createdAt: text("created_at").notNull().$defaultFn(now),
 });
+
+// Convenience type alias used across services
+export type EpistemicCandidate = typeof epistemicCandidates.$inferSelect;

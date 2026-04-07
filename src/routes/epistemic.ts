@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import { eq, and, inArray, sql } from 'drizzle-orm';
 import {
   db,
+  sqlite,
   users,
   epistemicEvents,
   epistemicCandidates,
@@ -18,6 +19,7 @@ import {
   createWatchRules,
   createLiminalRevisionPrompts,
 } from '../services/epistemicPromotion';
+import type { EpistemicCandidate } from '../schema/epistemic';
 import { backfillLiminalEntries, backfillParallaxData, backfillAxiomSeededState } from '../jobs/backfill';
 import { flushEpistemicQueue } from '../services/epistemicPush';
 import { seedExistingAxiomEntries, seedFromEntries } from '../jobs/seedExistingAxiom';
@@ -70,6 +72,16 @@ function requireAuth(req: Request, res: Response): AuthPayload | null {
     return null;
   }
   return auth;
+}
+
+function requireInternalToken(req: Request, res: Response, next: () => void): void {
+  const token = (req.headers as Record<string, string>)['x-lumen-internal-token'];
+  const expectedToken = process.env.LUMEN_INTERNAL_TOKEN || JWT_SECRET;
+  if (!token || token !== expectedToken) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+  next();
 }
 
 // ─── POST /events ────────────────────────────────────────────────────────────
@@ -685,6 +697,33 @@ router.post('/reprocess/:userId', async (req: Request, res: Response) => {
     console.error('[epistemic/reprocess]', err);
     return res.status(500).json({ error: 'Reprocess failed.' });
   }
+});
+
+// ─── GET /convergence/:userId — inspect convergence groups ─────────────────
+
+router.get('/convergence/:userId', requireInternalToken, (req: Request, res: Response) => {
+  const { userId } = req.params;
+  const rows = sqlite
+    .prepare(`SELECT * FROM epistemic_candidates WHERE user_id = ? AND convergence_group_id IS NOT NULL ORDER BY convergence_group_id, created_at DESC`)
+    .all(userId) as (EpistemicCandidate & { convergence_group_id: string })[];
+
+  // Group by convergence_group_id
+  const groups: Record<string, (EpistemicCandidate & { convergence_group_id: string })[]> = {};
+  for (const row of rows) {
+    const gid = row.convergence_group_id;
+    if (!groups[gid]) groups[gid] = [];
+    groups[gid].push(row);
+  }
+
+  res.json({
+    userId,
+    convergenceGroups: Object.entries(groups).map(([groupId, members]) => ({
+      groupId,
+      memberCount: members.length,
+      sources: [...new Set(members.map(m => m.candidateType))],
+      members,
+    })),
+  });
 });
 
 export { router as epistemicRouter };
