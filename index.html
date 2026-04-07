@@ -940,9 +940,217 @@
       padding: 0; margin: -1px; overflow: hidden;
       clip: rect(0,0,0,0); white-space: nowrap; border-width: 0;
     }
+
+    /* ─────────────────────────────────────────────
+       AUTH GATE
+    ───────────────────────────────────────────── */
+    .gate {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg);
+      padding: var(--sp-8);
+      opacity: 0;
+      visibility: hidden;
+    }
+    .gate--active {
+      opacity: 1;
+      visibility: visible;
+      animation: gate-in .7s cubic-bezier(.22,.8,.32,1) both;
+    }
+    .gate--exit {
+      animation: gate-exit .55s cubic-bezier(.4,0,1,1) both;
+      pointer-events: none;
+    }
+    @keyframes gate-in {
+      from { opacity: 0; transform: scale(1.015); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+    @keyframes gate-exit {
+      from { opacity: 1; transform: translateY(0) scale(1); }
+      to   { opacity: 0; transform: translateY(-32px) scale(.985); }
+    }
+    .gate__inner {
+      width: 100%;
+      max-width: 380px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--sp-6);
+      text-align: center;
+    }
+    .gate__mark { color: var(--text); }
+    .gate__wordmark {
+      font-family: 'Cormorant', serif;
+      font-size: clamp(1.6rem, 1.2rem + 1vw, 2.2rem);
+      font-weight: 300;
+      letter-spacing: .32em;
+      color: var(--text);
+      text-transform: uppercase;
+      margin: 0;
+    }
+    .gate__rule {
+      width: 2rem;
+      height: 1px;
+      background: rgba(141,153,174,.2);
+      border: none;
+      margin: calc(var(--sp-2) * -1) 0;
+    }
+    .gate__phrase {
+      font-family: 'Cormorant', serif;
+      font-size: var(--text-base);
+      color: var(--muted);
+      font-style: italic;
+      font-weight: 300;
+      letter-spacing: .02em;
+      margin: 0;
+      line-height: 1.55;
+      max-width: 28ch;
+    }
+    .gate__form {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: var(--sp-3);
+      margin-top: var(--sp-2);
+    }
+    .gate__field {
+      display: flex;
+      align-items: stretch;
+      border: 1px solid rgba(141,153,174,.18);
+      border-radius: var(--r-md);
+      overflow: hidden;
+      background: rgba(255,255,255,.025);
+      transition: border-color .2s var(--ease), box-shadow .2s var(--ease);
+    }
+    .gate__field:focus-within {
+      border-color: rgba(255,209,102,.38);
+      box-shadow: 0 0 0 3px rgba(255,209,102,.07);
+    }
+    .gate__input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      padding: .75rem 1rem;
+      font-family: 'Satoshi', sans-serif;
+      font-size: var(--text-sm);
+      color: var(--text);
+      letter-spacing: .04em;
+    }
+    .gate__input::placeholder {
+      color: var(--muted);
+      opacity: .55;
+      letter-spacing: .1em;
+      font-size: .875em;
+      text-transform: uppercase;
+    }
+    .gate__submit {
+      background: transparent;
+      border: none;
+      border-left: 1px solid rgba(141,153,174,.18);
+      cursor: pointer;
+      padding: .75rem 1.125rem;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color .2s var(--ease), background .2s var(--ease);
+      flex-shrink: 0;
+    }
+    .gate__submit:hover {
+      color: var(--gold);
+      background: var(--gold-dim);
+    }
+    .gate__error {
+      font-family: 'Satoshi', sans-serif;
+      font-size: var(--text-xs);
+      color: rgba(255,209,102,.65);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      min-height: 1.2em;
+      text-align: center;
+      margin: 0;
+    }
+    .gate__error:empty { opacity: 0; }
+    @keyframes gate-shake {
+      0%,100% { transform: translateX(0); }
+      20%     { transform: translateX(-10px); }
+      40%     { transform: translateX(10px); }
+      60%     { transform: translateX(-7px); }
+      80%     { transform: translateX(7px); }
+    }
+    .gate__inner--shake { animation: gate-shake .4s ease both; }
   </style>
 </head>
 <body>
+
+<!-- ╔══════════════════════════════════════════
+     AUTH GATE
+═══════════════════════════════════════════╗ -->
+<div id="lumen-gate" class="gate" role="dialog" aria-modal="true" aria-label="Lumen — enter passphrase">
+  <div class="gate__inner" id="gate-inner">
+
+    <!-- Mark -->
+    <div class="gate__mark" aria-hidden="true">
+      <svg width="72" height="72" viewBox="0 0 32 32" fill="none">
+        <circle cx="16" cy="16" r="14" stroke="currentColor" stroke-width=".5" opacity=".15"/>
+        <line x1="16" y1="2"  x2="16" y2="8"  stroke="#FFD166" stroke-width="1.2" stroke-linecap="round" opacity=".9"/>
+        <line x1="16" y1="24" x2="16" y2="30" stroke="#FFD166" stroke-width="1.2" stroke-linecap="round" opacity=".9"/>
+        <line x1="2"  y1="16" x2="8"  y2="16" stroke="#FFD166" stroke-width="1.2" stroke-linecap="round" opacity=".9"/>
+        <line x1="24" y1="16" x2="30" y2="16" stroke="#FFD166" stroke-width="1.2" stroke-linecap="round" opacity=".9"/>
+        <line x1="5.46"  y1="5.46"  x2="9.64"  y2="9.64"  stroke="#FFD166" stroke-width=".8" stroke-linecap="round" opacity=".4"/>
+        <line x1="22.36" y1="22.36" x2="26.54" y2="26.54" stroke="#FFD166" stroke-width=".8" stroke-linecap="round" opacity=".4"/>
+        <line x1="26.54" y1="5.46"  x2="22.36" y2="9.64"  stroke="#FFD166" stroke-width=".8" stroke-linecap="round" opacity=".4"/>
+        <line x1="9.64"  y1="22.36" x2="5.46"  y2="26.54" stroke="#FFD166" stroke-width=".8" stroke-linecap="round" opacity=".4"/>
+        <circle cx="16" cy="16" r="2.5" fill="#FFD166" opacity=".95"/>
+        <circle cx="16" cy="16" r="5"   fill="none" stroke="#FFD166" stroke-width=".4" opacity=".22"/>
+      </svg>
+    </div>
+
+    <p class="gate__wordmark">Lumen</p>
+    <hr class="gate__rule" aria-hidden="true" />
+    <p class="gate__phrase">Where reflection becomes structure.</p>
+
+    <form class="gate__form" id="gate-form" novalidate>
+      <div class="gate__field">
+        <label for="gate-pass" class="sr-only">Passphrase</label>
+        <input
+          type="password"
+          id="gate-pass"
+          class="gate__input"
+          placeholder="Passphrase"
+          autocomplete="current-password"
+          spellcheck="false"
+          autofocus
+        />
+        <button type="submit" class="gate__submit" aria-label="Enter Lumen">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </button>
+      </div>
+      <p class="gate__error" id="gate-error" role="alert"></p>
+    </form>
+
+  </div>
+</div>
+<script>
+/* ── Auth gate: immediate sessionStorage check (runs before paint) ── */
+(function () {
+  var gate = document.getElementById('lumen-gate');
+  if (!gate) return;
+  if (sessionStorage.getItem('lumen-auth') === 'granted') {
+    gate.remove();
+  } else {
+    document.body.style.overflow = 'hidden';
+    gate.classList.add('gate--active');
+  }
+})();
+</script>
 
 <!-- ╔══════════════════════════════════════════
      NAV
@@ -1347,6 +1555,57 @@
 
 
 <script>
+/* ── Auth gate: form handler ── */
+(function () {
+  var gate  = document.getElementById('lumen-gate');
+  if (!gate) return; // already removed — user is authenticated
+
+  var form  = document.getElementById('gate-form');
+  var input = document.getElementById('gate-pass');
+  var error = document.getElementById('gate-error');
+  var inner = document.getElementById('gate-inner');
+
+  /* ── Passphrase configuration ─────────────────────────────────────────────
+     Default passphrase: "lumen"
+     To change: compute SHA-256 of your new passphrase at
+     https://emn178.github.io/online-tools/sha256.html
+     and replace the hash below.
+  ─────────────────────────────────────────────────────────────── */
+  var PASSPHRASE_HASH = '456f45fddc2e725c2948d03317e2262c2ec8e86745af28dc7b2221987b858b50';
+  /* ──────────────────────────────────────────────────────────────────── */
+
+  async function sha256(str) {
+    var buf  = new TextEncoder().encode(str);
+    var hash = await crypto.subtle.digest('SHA-256', buf);
+    return Array.from(new Uint8Array(hash)).map(function(b) {
+      return b.toString(16).padStart(2, '0');
+    }).join('');
+  }
+
+  form.addEventListener('submit', async function (e) {
+    e.preventDefault();
+    var val = input.value; // don't trim — passphrases may have intentional spacing
+    if (!val) { input.focus(); return; }
+
+    var hash = await sha256(val);
+
+    if (hash === PASSPHRASE_HASH) {
+      sessionStorage.setItem('lumen-auth', 'granted');
+      document.body.style.overflow = '';
+      gate.classList.add('gate--exit');
+      gate.addEventListener('animationend', function () { gate.remove(); }, { once: true });
+    } else {
+      error.textContent = 'Incorrect passphrase.';
+      input.value = '';
+      input.focus();
+      inner.classList.remove('gate__inner--shake');
+      // Force reflow to re-trigger animation
+      void inner.offsetWidth;
+      inner.classList.add('gate__inner--shake');
+    }
+  });
+})();
+
 /* ── Theme toggle ── */
 (function () {
   const btn  = document.querySelector('[data-theme-toggle]');
