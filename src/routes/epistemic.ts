@@ -19,6 +19,7 @@ import {
   createLiminalRevisionPrompts,
 } from '../services/epistemicPromotion';
 import { backfillLiminalEntries, backfillParallaxData, backfillAxiomSeededState } from '../jobs/backfill';
+import { flushEpistemicQueue } from '../services/epistemicPush';
 import { seedExistingAxiomEntries, seedFromEntries } from '../jobs/seedExistingAxiom';
 
 const router = Router();
@@ -148,6 +149,11 @@ router.post('/events', async (req: Request, res: Response) => {
 
     // After insert/update, run processEvent
     await processEvent(event);
+
+    // Fire-and-forget: push any newly queued candidates to Axiomtool / Praxis
+    flushEpistemicQueue(String(event.userId)).catch((e: unknown) => {
+      console.error('[epistemic/events] push flush error:', e);
+    });
 
     return res.status(201).json(event);
   } catch (err) {
@@ -582,6 +588,23 @@ router.post('/sensitivity/:userId', (req: Request, res: Response) => {
   }
 });
 
+// ─── POST /push/:userId — flush epistemic queue to Axiomtool + Praxis ────────
+router.post('/push/:userId', async (req: Request, res: Response) => {
+  const { userId } = req.params;
+  const token = (req.headers as Record<string, string>)['x-lumen-internal-token'];
+  const expectedToken = process.env.LUMEN_INTERNAL_TOKEN;
+  if (!expectedToken || token !== expectedToken) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  try {
+    const result = await flushEpistemicQueue(userId);
+    res.json(result);
+  } catch (e: any) {
+    console.error('[epistemic/push]', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // ─── POST /reprocess/:userId ─────────────────────────────────────────────────────────
 // Re-evaluates all existing events against current sensitivity thresholds.
 // Clears open/queued candidates first, then re-runs processEvent on all events.
@@ -646,6 +669,11 @@ router.post('/reprocess/:userId', async (req: Request, res: Response) => {
         )
       )
       .all();
+
+    // Fire-and-forget push after reprocess
+    flushEpistemicQueue(userId).catch((e: unknown) => {
+      console.error('[epistemic/reprocess] push flush error:', e);
+    });
 
     return res.json({
       clearedCandidates: candidatesToDelete.length,
