@@ -1074,18 +1074,28 @@
   <div class="gate__inner" id="gate-inner">
 
     <div class="gate__mark" aria-hidden="true">
-      <svg width="72" height="72" viewBox="0 0 32 32" fill="none">
-        <circle cx="16" cy="16" r="14" stroke="currentColor" stroke-width=".5" opacity=".15"/>
-        <line x1="16" y1="2"  x2="16" y2="8"  stroke="#FFD166" stroke-width="1.2" stroke-linecap="round" opacity=".9"/>
-        <line x1="16" y1="24" x2="16" y2="30" stroke="#FFD166" stroke-width="1.2" stroke-linecap="round" opacity=".9"/>
-        <line x1="2"  y1="16" x2="8"  y2="16" stroke="#FFD166" stroke-width="1.2" stroke-linecap="round" opacity=".9"/>
-        <line x1="24" y1="16" x2="30" y2="16" stroke="#FFD166" stroke-width="1.2" stroke-linecap="round" opacity=".9"/>
-        <line x1="5.46"  y1="5.46"  x2="9.64"  y2="9.64"  stroke="#FFD166" stroke-width=".8" stroke-linecap="round" opacity=".4"/>
-        <line x1="22.36" y1="22.36" x2="26.54" y2="26.54" stroke="#FFD166" stroke-width=".8" stroke-linecap="round" opacity=".4"/>
-        <line x1="26.54" y1="5.46"  x2="22.36" y2="9.64"  stroke="#FFD166" stroke-width=".8" stroke-linecap="round" opacity=".4"/>
-        <line x1="9.64"  y1="22.36" x2="5.46"  y2="26.54" stroke="#FFD166" stroke-width=".8" stroke-linecap="round" opacity=".4"/>
-        <circle cx="16" cy="16" r="2.5" fill="#FFD166" opacity=".95"/>
-        <circle cx="16" cy="16" r="5"   fill="none" stroke="#FFD166" stroke-width=".4" opacity=".22"/>
+      <!-- Lumen radiant mark with Lumen suite labels at each cardinal point -->
+      <svg width="200" height="160" viewBox="0 0 200 160" fill="none">
+        <!-- Outer faint ring -->
+        <circle cx="100" cy="80" r="28" stroke="currentColor" stroke-width="0.5" opacity="0.15"/>
+        <!-- Cardinal rays -->
+        <line x1="100" y1="64" x2="100" y2="52" stroke="#FFD166" stroke-width="2.5" stroke-linecap="round" opacity="0.9"/>
+        <line x1="100" y1="96" x2="100" y2="108" stroke="#FFD166" stroke-width="2.5" stroke-linecap="round" opacity="0.9"/>
+        <line x1="84"  y1="80" x2="72"  y2="80"  stroke="#FFD166" stroke-width="2.5" stroke-linecap="round" opacity="0.9"/>
+        <line x1="116" y1="80" x2="128" y2="80"  stroke="#FFD166" stroke-width="2.5" stroke-linecap="round" opacity="0.9"/>
+        <!-- Diagonal rays (shorter) -->
+        <line x1="88.7" y1="68.7" x2="80.2" y2="60.2" stroke="#FFD166" stroke-width="1.4" stroke-linecap="round" opacity="0.38"/>
+        <line x1="111.3" y1="91.3" x2="119.8" y2="99.8" stroke="#FFD166" stroke-width="1.4" stroke-linecap="round" opacity="0.38"/>
+        <line x1="111.3" y1="68.7" x2="119.8" y2="60.2" stroke="#FFD166" stroke-width="1.4" stroke-linecap="round" opacity="0.38"/>
+        <line x1="88.7" y1="91.3" x2="80.2" y2="99.8" stroke="#FFD166" stroke-width="1.4" stroke-linecap="round" opacity="0.38"/>
+        <!-- Center dot + inner ring -->
+        <circle cx="100" cy="80" r="4"  fill="#FFD166" opacity="0.95"/>
+        <circle cx="100" cy="80" r="10" fill="none" stroke="#FFD166" stroke-width="0.5" opacity="0.22"/>
+        <!-- Suite labels — what login gives you -->
+        <text x="100" y="40"  text-anchor="middle" fill="#8D99AE" font-size="7.5" letter-spacing="2" font-family="'Cormorant', Georgia, serif">LIMINAL</text>
+        <text x="138" y="83"  text-anchor="start"  fill="#8D99AE" font-size="7.5" letter-spacing="2" font-family="'Cormorant', Georgia, serif">PARALLAX</text>
+        <text x="100" y="122" text-anchor="middle" fill="#8D99AE" font-size="7.5" letter-spacing="2" font-family="'Cormorant', Georgia, serif">PRAXIS</text>
+        <text x="62"  y="83"  text-anchor="end"    fill="#8D99AE" font-size="7.5" letter-spacing="2" font-family="'Cormorant', Georgia, serif">AXIOM</text>
       </svg>
     </div>
 
