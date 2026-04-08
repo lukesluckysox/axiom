@@ -86,6 +86,9 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS monthly_session_reset TIMESTAMPTZ DEF
 ALTER TABLE users ADD COLUMN IF NOT EXISTS stripe_customer_id TEXT;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS plan_changed_at TIMESTAMPTZ;
 
+-- Lumen loop: link Liminal user to Lumen OS user for cross-app feeds
+ALTER TABLE users ADD COLUMN IF NOT EXISTS lumen_user_id TEXT;
+
 -- Ensure oracle role for the designated admin email
 UPDATE users SET role = 'oracle', plan = 'cabinet' WHERE email = 'thebestpolicyis@gmail.com';
 
