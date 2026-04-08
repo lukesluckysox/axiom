@@ -629,22 +629,30 @@
       text-transform: uppercase;
       color: var(--muted);
       padding: var(--sp-2) var(--sp-5);
-      border: 1px solid var(--border-md);
+      display: inline-flex;
+      align-items: center;
+      gap: var(--sp-2);
       transition: all var(--t);
       white-space: nowrap;
     }
     .chain__pill:hover {
       color: var(--text);
-      border-color: var(--border-lg);
-      background: var(--surface);
     }
     .chain__pill--apex {
       color: var(--gold);
-      border-color: rgba(255,209,102,.32);
     }
     .chain__pill--apex:hover {
-      background: var(--gold-dim);
-      border-color: rgba(255,209,102,.5);
+      color: var(--gold);
+    }
+    .chain__loop-icon {
+      display: inline-block;
+      flex-shrink: 0;
+      opacity: .65;
+      transition: opacity var(--t), transform var(--t);
+    }
+    .chain__pill:hover .chain__loop-icon {
+      opacity: 1;
+      transform: rotate(90deg);
     }
 
     .chain__sep {
@@ -1404,6 +1412,9 @@
       position: relative;
       overflow: hidden;
       transition: background var(--t);
+      text-decoration: none;
+      color: inherit;
+      cursor: pointer;
     }
     .state-card::before {
       content: '';
@@ -1412,13 +1423,26 @@
       height: 2px;
       background: var(--sc-accent, var(--gold));
       opacity: .22;
-      transition: opacity var(--t);
+      transition: opacity var(--t), height var(--t);
     }
     .state-card:hover {
       background: var(--surface-2);
     }
     .state-card:hover::before {
       opacity: .55;
+      height: 3px;
+    }
+    .state-card__arrow {
+      position: absolute;
+      top: var(--sp-4); right: var(--sp-4);
+      color: var(--faint);
+      opacity: 0;
+      transform: translate(-4px, 4px);
+      transition: opacity var(--t), transform var(--t);
+    }
+    .state-card:hover .state-card__arrow {
+      opacity: .7;
+      transform: translate(0, 0);
     }
 
     .state-card--gold    { --sc-accent: #FFD166; }
@@ -1445,6 +1469,96 @@
       color: var(--faint);
       letter-spacing: .04em;
     }
+
+    /* ─────────────────────────────────────────────
+       PIPELINE HEALTH MONITOR
+    ───────────────────────────────────────────── */
+    .pipeline {
+      display: none;
+      align-items: center;
+      gap: var(--sp-2);
+      padding: 3px var(--sp-3);
+      border: 1px solid var(--border-md);
+      border-radius: 100px;
+      margin-right: var(--sp-2);
+      cursor: default;
+      position: relative;
+    }
+    .pipeline--visible { display: inline-flex; }
+    .pipeline__label {
+      font-size: 9px;
+      font-weight: 500;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--faint);
+      white-space: nowrap;
+    }
+    .pipeline__dots {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+    .pipeline__dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      transition: background var(--t), box-shadow var(--t);
+    }
+    .pipeline__dot--ok {
+      background: #4ade80;
+      box-shadow: 0 0 4px rgba(74,222,128,.35);
+    }
+    .pipeline__dot--warn {
+      background: #fbbf24;
+      box-shadow: 0 0 4px rgba(251,191,36,.35);
+    }
+    .pipeline__dot--err {
+      background: #f87171;
+      box-shadow: 0 0 4px rgba(248,113,113,.35);
+    }
+    .pipeline__dot--off {
+      background: var(--faint);
+      opacity: .3;
+    }
+    .pipeline__tooltip {
+      display: none;
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      background: var(--surface-3);
+      border: 1px solid var(--border-md);
+      border-radius: var(--r-md);
+      padding: var(--sp-3) var(--sp-4);
+      z-index: 300;
+      min-width: 180px;
+      box-shadow: var(--sh-md);
+    }
+    .pipeline:hover .pipeline__tooltip {
+      display: block;
+    }
+    .pipeline__row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--sp-3);
+      padding: 2px 0;
+    }
+    .pipeline__row-name {
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .pipeline__row-status {
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .pipeline__row-status--ok   { color: #4ade80; }
+    .pipeline__row-status--warn { color: #fbbf24; }
+    .pipeline__row-status--err  { color: #f87171; }
+    .pipeline__row-status--off  { color: var(--faint); }
 
     /* ─────────────────────────────────────────────
        COCKPIT — ACTIVITY FEED
@@ -1863,7 +1977,6 @@
       <ul class="nav__links" role="list">
         <li><a href="#tools"  class="nav__link">Tools</a></li>
         <li><a href="#loop"   class="nav__link">System</a></li>
-        <li><a href="#shell"  class="nav__link">Shell</a></li>
         <li><a href="#close"  class="nav__link">Philosophy</a></li>
       </ul>
 
@@ -1884,6 +1997,21 @@
           Enter
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
         </a>
+        <div class="pipeline" id="pipeline" aria-label="Pipeline health">
+          <span class="pipeline__label">Pipeline</span>
+          <div class="pipeline__dots" id="pipeline-dots">
+            <span class="pipeline__dot pipeline__dot--off" data-app="liminal" title="Liminal"></span>
+            <span class="pipeline__dot pipeline__dot--off" data-app="parallax" title="Parallax"></span>
+            <span class="pipeline__dot pipeline__dot--off" data-app="praxis" title="Praxis"></span>
+            <span class="pipeline__dot pipeline__dot--off" data-app="axiom" title="Axiom"></span>
+          </div>
+          <div class="pipeline__tooltip" id="pipeline-tooltip">
+            <div class="pipeline__row"><span class="pipeline__row-name">Liminal</span><span class="pipeline__row-status pipeline__row-status--off" id="pipe-liminal">Checking</span></div>
+            <div class="pipeline__row"><span class="pipeline__row-name">Parallax</span><span class="pipeline__row-status pipeline__row-status--off" id="pipe-parallax">Checking</span></div>
+            <div class="pipeline__row"><span class="pipeline__row-name">Praxis</span><span class="pipeline__row-status pipeline__row-status--off" id="pipe-praxis">Checking</span></div>
+            <div class="pipeline__row"><span class="pipeline__row-name">Axiom</span><span class="pipeline__row-status pipeline__row-status--off" id="pipe-axiom">Checking</span></div>
+          </div>
+        </div>
         <div class="nav__user" id="nav-user" aria-live="polite">
           <span class="nav__username"></span>
           <button class="nav__signout" id="nav-signout" aria-label="Sign out of Lumen">Sign out</button>
@@ -1948,19 +2076,31 @@
 
     <!-- Four-tool chain -->
     <nav class="chain up d2" aria-label="Four-tool progression">
-      <a href="#tools" class="chain__pill">Liminal</a>
+      <a href="#tools" class="chain__pill">
+        <svg class="chain__loop-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10" stroke-linecap="round"/><path d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2" stroke-linecap="round" stroke-dasharray="3 3" opacity=".4"/><circle cx="12" cy="2" r="1.5" fill="currentColor" opacity=".8"/></svg>
+        Liminal
+      </a>
       <span class="chain__sep" aria-hidden="true">
         <svg width="22" height="1" viewBox="0 0 22 1" fill="none"><line x1="0" y1=".5" x2="17" y2=".5" stroke="currentColor" stroke-opacity=".35"/><path d="M15 -2L21 .5L15 3" stroke="currentColor" stroke-opacity=".35" stroke-width=".9" fill="none"/></svg>
       </span>
-      <a href="#tools" class="chain__pill">Parallax</a>
+      <a href="#tools" class="chain__pill">
+        <svg class="chain__loop-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10" stroke-linecap="round"/><path d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2" stroke-linecap="round" stroke-dasharray="3 3" opacity=".4"/><circle cx="12" cy="2" r="1.5" fill="currentColor" opacity=".8"/></svg>
+        Parallax
+      </a>
       <span class="chain__sep" aria-hidden="true">
         <svg width="22" height="1" viewBox="0 0 22 1" fill="none"><line x1="0" y1=".5" x2="17" y2=".5" stroke="currentColor" stroke-opacity=".35"/><path d="M15 -2L21 .5L15 3" stroke="currentColor" stroke-opacity=".35" stroke-width=".9" fill="none"/></svg>
       </span>
-      <a href="#tools" class="chain__pill">Praxis</a>
+      <a href="#tools" class="chain__pill">
+        <svg class="chain__loop-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10" stroke-linecap="round"/><path d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2" stroke-linecap="round" stroke-dasharray="3 3" opacity=".4"/><circle cx="12" cy="2" r="1.5" fill="currentColor" opacity=".8"/></svg>
+        Praxis
+      </a>
       <span class="chain__sep" aria-hidden="true">
         <svg width="22" height="1" viewBox="0 0 22 1" fill="none"><line x1="0" y1=".5" x2="17" y2=".5" stroke="currentColor" stroke-opacity=".35"/><path d="M15 -2L21 .5L15 3" stroke="currentColor" stroke-opacity=".35" stroke-width=".9" fill="none"/></svg>
       </span>
-      <a href="#tools" class="chain__pill chain__pill--apex">Axiom</a>
+      <a href="#tools" class="chain__pill chain__pill--apex">
+        <svg class="chain__loop-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FFD166" stroke-width="1.5" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10" stroke-linecap="round"/><path d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2" stroke-linecap="round" stroke-dasharray="3 3" opacity=".4"/><circle cx="12" cy="2" r="1.5" fill="#FFD166" opacity=".8"/></svg>
+        Axiom
+      </a>
     </nav>
 
   </div>
@@ -1988,26 +2128,30 @@
         <h2 class="state-title">Where the system stands.</h2>
       </div>
       <div class="state-grid" role="list" id="state-grid">
-        <div class="state-card state-card--gold" role="listitem">
+        <a class="state-card state-card--gold" role="listitem" href="https://axiomtool-production.up.railway.app/#/" target="_blank" rel="noopener noreferrer" data-app="axiom" data-has-sso="true" aria-label="View Constitutional Principles in Axiom">
+          <svg class="state-card__arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
           <span class="state-card__label">Constitutional Principles</span>
           <span class="state-card__count" id="state-axiom">—</span>
           <span class="state-card__sub">Truths distilled by Axiom</span>
-        </div>
-        <div class="state-card state-card--red" role="listitem">
+        </a>
+        <a class="state-card state-card--red" role="listitem" href="https://axiomtool-production.up.railway.app/#/" target="_blank" rel="noopener noreferrer" data-app="axiom" data-has-sso="true" aria-label="View Active Tensions in Axiom">
+          <svg class="state-card__arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
           <span class="state-card__label">Active Tensions</span>
           <span class="state-card__count" id="state-tension">—</span>
           <span class="state-card__sub">Unresolved contradictions</span>
-        </div>
-        <div class="state-card state-card--amber" role="listitem">
+        </a>
+        <a class="state-card state-card--amber" role="listitem" href="https://praxis-production-da89.up.railway.app/" target="_blank" rel="noopener noreferrer" data-app="praxis" data-has-sso="true" aria-label="View Live Experiments in Praxis">
+          <svg class="state-card__arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
           <span class="state-card__label">Live Experiments</span>
           <span class="state-card__count" id="state-experiment">—</span>
           <span class="state-card__sub">Hypotheses under test</span>
-        </div>
-        <div class="state-card state-card--brass" role="listitem">
+        </a>
+        <a class="state-card state-card--brass" role="listitem" href="https://liminal-app.up.railway.app/" target="_blank" rel="noopener noreferrer" data-app="liminal" data-has-sso="true" aria-label="View Pending Inquiries in Liminal">
+          <svg class="state-card__arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
           <span class="state-card__label">Pending Inquiries</span>
           <span class="state-card__count" id="state-pending">—</span>
           <span class="state-card__sub">Prompts awaiting response</span>
-        </div>
+        </a>
       </div>
     </div>
   </section>
@@ -2068,7 +2212,7 @@
   <div class="tools-grid" role="list">
 
     <!-- Liminal -->
-    <article class="card card--liminal up" role="listitem">
+    <article class="card card--liminal up" id="card-liminal" role="listitem">
       <p class="card__idx">01</p>
       <div class="card__hd">
         <h3 class="card__name">Liminal</h3>
@@ -2085,7 +2229,7 @@
     </article>
 
     <!-- Parallax -->
-    <article class="card card--parallax up d1" role="listitem">
+    <article class="card card--parallax up d1" id="card-parallax" role="listitem">
       <p class="card__idx">02</p>
       <div class="card__hd">
         <h3 class="card__name">Parallax</h3>
@@ -2102,7 +2246,7 @@
     </article>
 
     <!-- Praxis -->
-    <article class="card card--praxis up d2" role="listitem">
+    <article class="card card--praxis up d2" id="card-praxis" role="listitem">
       <p class="card__idx">03</p>
       <div class="card__hd">
         <h3 class="card__name">Praxis</h3>
@@ -2119,7 +2263,7 @@
     </article>
 
     <!-- Axiom -->
-    <article class="card card--axiom up d3" role="listitem">
+    <article class="card card--axiom up d3" id="card-axiom" role="listitem">
       <p class="card__idx">04</p>
       <div class="card__hd">
         <h3 class="card__name">Axiom</h3>
@@ -2219,77 +2363,7 @@
 </section>
 
 
-<!-- ╔══════════════════════════════════════════
-     SHELL
-═══════════════════════════════════════════╗ -->
-<section class="section shell-band" id="shell" aria-label="Shell preview">
-  <div class="wrap">
 
-    <div class="section__head">
-      <span class="section__eye">The Shell</span>
-      <h2 class="section__title">A unified interface<br>for all four instruments.</h2>
-      <p class="section__desc">The Lumen shell will serve as the parent environment — a single surface through which the four tools share state, communicate findings, and compound their outputs into a living personal constitution.</p>
-    </div>
-
-    <div class="shell-frame up" role="img" aria-label="Lumen shell interface — currently in development">
-
-      <div class="shell-bar">
-        <div class="shell-bar__dots" aria-hidden="true">
-          <span class="shell-bar__dot"></span>
-          <span class="shell-bar__dot"></span>
-          <span class="shell-bar__dot"></span>
-        </div>
-        <span class="shell-bar__label">Lumen — Shell&nbsp; v0.1 &nbsp;·&nbsp; Preview</span>
-        <div class="shell-bar__state">
-          <span class="shell-pulse" aria-hidden="true"></span>
-          Assembling
-        </div>
-      </div>
-
-      <div class="shell-body">
-
-        <nav class="shell-nav" aria-label="Shell navigation">
-          <span class="shell-nav__lbl">Overview</span>
-          <div class="shell-item shell-item--on"><span class="shell-dot"></span>Dashboard</div>
-          <div class="shell-item"><span class="shell-dot"></span>Liminal</div>
-          <div class="shell-item"><span class="shell-dot"></span>Parallax</div>
-          <div class="shell-item"><span class="shell-dot"></span>Praxis</div>
-          <div class="shell-item"><span class="shell-dot"></span>Axiom</div>
-        </nav>
-
-        <div class="shell-grid" aria-label="Dashboard modules">
-
-          <div class="shell-mod">
-            <p class="shell-mod__lbl">Active Experiments</p>
-            <p class="shell-mod__empty">No active experiments yet.</p>
-          </div>
-
-          <div class="shell-mod">
-            <p class="shell-mod__lbl">Emerging Doctrines</p>
-            <p class="shell-mod__empty">No doctrines synthesized yet.</p>
-          </div>
-
-          <div class="shell-mod">
-            <p class="shell-mod__lbl">Core Tensions</p>
-            <p class="shell-mod__empty">No tensions logged yet.</p>
-          </div>
-
-          <div class="shell-mod">
-            <p class="shell-mod__lbl">Truth Claims</p>
-            <p class="shell-mod__empty">No claims distilled yet.</p>
-          </div>
-
-          <div class="shell-mod shell-mod--wide">
-            <p class="shell-mod__lbl">Recent Revisions</p>
-            <p class="shell-mod__line">The shell is assembling. Return when the four instruments are ready.</p>
-          </div>
-
-        </div>
-      </div>
-    </div>
-
-  </div>
-</section>
 
 
 <!-- ╔══════════════════════════════════════════
@@ -2341,41 +2415,44 @@
 
 
 <script>
-/* ── SSO — intercept card "Enter" clicks and inject a short-lived token ── */
+/* ── SSO — intercept card/KPI clicks and inject a short-lived token ── */
 (function () {
-  // For apps with auth (data-has-sso="true"), redirect through the app's own
-  // /api/auth/sso?token=<value> endpoint which sets the session cookie then
-  // bounces the user to "/". Apps without auth open directly.
-  document.addEventListener('DOMContentLoaded', function () {
-    document.querySelectorAll('.card__cta--live').forEach(function (link) {
-      link.addEventListener('click', async function (e) {
-        e.preventDefault();
-        var dest = link.getAttribute('href');
-        var hasSso = link.getAttribute('data-has-sso') === 'true';
+  function ssoNavigate(link, e) {
+    e.preventDefault();
+    var dest = link.getAttribute('href');
+    var hasSso = link.getAttribute('data-has-sso') === 'true';
 
-        if (hasSso) {
-          // Open a blank window SYNCHRONOUSLY (inside the click handler, before
-          // any await) so mobile browsers don’t treat it as a blocked popup.
-          // Then navigate it to the SSO URL once the token is fetched.
-          var newWin = window.open('about:blank', '_blank');
-          try {
-            var res = await fetch('/api/auth/sso-token', { credentials: 'same-origin' });
-            var finalDest = dest;
-            if (res.ok) {
-              var data = await res.json();
-              var origin = new URL(dest).origin;
-              finalDest = origin + '/api/auth/sso?token=' + encodeURIComponent(data.token);
-            }
-            if (newWin) { newWin.location.href = finalDest; }
-            else { window.open(finalDest, '_blank'); }
-          } catch {
-            if (newWin) { newWin.location.href = dest; }
-            else { window.open(dest, '_blank'); }
+    if (hasSso) {
+      var newWin = window.open('about:blank', '_blank');
+      (async function () {
+        try {
+          var res = await fetch('/api/auth/sso-token', { credentials: 'same-origin' });
+          var finalDest = dest;
+          if (res.ok) {
+            var data = await res.json();
+            var origin = new URL(dest).origin;
+            finalDest = origin + '/api/auth/sso?token=' + encodeURIComponent(data.token);
           }
-        } else {
-          window.open(dest, '_blank', 'noopener,noreferrer');
+          if (newWin) { newWin.location.href = finalDest; }
+          else { window.open(finalDest, '_blank'); }
+        } catch {
+          if (newWin) { newWin.location.href = dest; }
+          else { window.open(dest, '_blank'); }
         }
-      });
+      })();
+    } else {
+      window.open(dest, '_blank', 'noopener,noreferrer');
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    // Tool card CTAs
+    document.querySelectorAll('.card__cta--live').forEach(function (link) {
+      link.addEventListener('click', function (e) { ssoNavigate(link, e); });
+    });
+    // KPI state cards (linkable)
+    document.querySelectorAll('.state-card[data-has-sso]').forEach(function (link) {
+      link.addEventListener('click', function (e) { ssoNavigate(link, e); });
     });
   });
 })();
@@ -2404,6 +2481,9 @@
     gate.addEventListener('animationend', function () { gate.remove(); }, { once: true });
     loadSensitivity();
     loadCockpit();
+    loadPipelineHealth();
+    var pipeEl = document.getElementById('pipeline');
+    if (pipeEl) pipeEl.classList.add('pipeline--visible');
   }
 
   function showForm() {
@@ -2588,13 +2668,36 @@
     });
   }
 
-  // Palette dot clicks
+  // Palette dot clicks — change theme AND scroll to corresponding tool card
+  var paletteToCardId = {
+    liminal:  'card-liminal',
+    parallax: 'card-parallax',
+    praxis:   'card-praxis',
+    axiom:    'card-axiom',
+  };
+
   document.querySelectorAll('.palette-dot').forEach(function (dot) {
     dot.addEventListener('click', function () {
       p = dot.getAttribute('data-palette') || 'lumen';
       localStorage.setItem('lumen-palette', p);
       applyTheme();
       updatePaletteDots();
+
+      // Scroll to the corresponding tool card section
+      var targetId = paletteToCardId[p];
+      if (targetId) {
+        var el = document.getElementById(targetId);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          // Brief highlight pulse
+          el.style.boxShadow = '0 0 0 2px var(--gold)';
+          setTimeout(function () { el.style.boxShadow = ''; }, 1200);
+        }
+      } else {
+        // Lumen palette — scroll to hero
+        var hero = document.getElementById('hero');
+        if (hero) hero.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
     });
   });
 })();
@@ -2816,6 +2919,52 @@ async function setSensitivity(val) {
   // Expose to global scope so the auth gate can call it
   window.loadCockpit = loadCockpit;
 
+})();
+
+/* ── Pipeline Health Monitor ── */
+(function () {
+  var APP_URLS = {
+    liminal:  'https://liminal-app.up.railway.app',
+    parallax: 'https://parallaxapp.up.railway.app',
+    praxis:   'https://praxis-production-da89.up.railway.app',
+    axiom:    'https://axiomtool-production.up.railway.app',
+  };
+
+  async function checkApp(name, url) {
+    try {
+      var controller = new AbortController();
+      var timeout = setTimeout(function () { controller.abort(); }, 6000);
+      var res = await fetch(url, { mode: 'no-cors', signal: controller.signal });
+      clearTimeout(timeout);
+      // no-cors returns opaque response (status 0) if reachable
+      return { name: name, status: 'ok' };
+    } catch (err) {
+      return { name: name, status: err.name === 'AbortError' ? 'warn' : 'err' };
+    }
+  }
+
+  async function loadPipelineHealth() {
+    var results = await Promise.all(
+      Object.keys(APP_URLS).map(function (name) { return checkApp(name, APP_URLS[name]); })
+    );
+
+    results.forEach(function (r) {
+      // Update nav dot
+      var dot = document.querySelector('.pipeline__dot[data-app="' + r.name + '"]');
+      if (dot) {
+        dot.className = 'pipeline__dot pipeline__dot--' + r.status;
+      }
+      // Update tooltip row
+      var row = document.getElementById('pipe-' + r.name);
+      if (row) {
+        var labels = { ok: 'Online', warn: 'Slow', err: 'Down', off: 'Unknown' };
+        row.textContent = labels[r.status] || 'Unknown';
+        row.className = 'pipeline__row-status pipeline__row-status--' + r.status;
+      }
+    });
+  }
+
+  window.loadPipelineHealth = loadPipelineHealth;
 })();
 
 /* ── Nav scroll awareness ── */
