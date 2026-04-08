@@ -269,6 +269,21 @@ export class DatabaseStorage implements IStorage {
     } catch { /* already exists */ }
     try { sqlite.exec("ALTER TABLE users ADD COLUMN pro INTEGER DEFAULT 0"); } catch { /* already exists */ }
     try { sqlite.exec("ALTER TABLE users ADD COLUMN lumen_user_id TEXT"); } catch { /* already exists */ }
+
+    // One-time flush: liminal_sessions created before voice-transform fix (2026-04-08)
+    // are in the wrong grammatical person. Delete them + their synthetic checkins/writings.
+    // This is safe — it only touches cross-talk records, not user-authored data.
+    try {
+      const stale = sqlite.prepare(
+        `SELECT id, checkin_id, writing_id FROM liminal_sessions WHERE created_at < '2026-04-09T00:00:00'`
+      ).all() as { id: number; checkin_id: number | null; writing_id: number | null }[];
+      for (const s of stale) {
+        if (s.checkin_id) sqlite.prepare('DELETE FROM checkins WHERE id = ?').run(s.checkin_id);
+        if (s.writing_id) sqlite.prepare('DELETE FROM writings WHERE id = ?').run(s.writing_id);
+        sqlite.prepare('DELETE FROM liminal_sessions WHERE id = ?').run(s.id);
+      }
+      if (stale.length > 0) console.log(`[migration] Flushed ${stale.length} pre-fix liminal cross-talk entries`);
+    } catch (e) { console.error('[migration] liminal_sessions flush error (non-fatal):', e); }
   }
 
   // ---- User methods ----

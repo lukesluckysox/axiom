@@ -220,4 +220,14 @@ try {
 
 try { sqlite.exec("ALTER TABLE epistemic_candidates ADD COLUMN convergence_group_id TEXT"); } catch (_e) {}
 
+// One-time flush: prompt_queue entries created before voice-transform fix (2026-04-08)
+// are in the wrong grammatical person. Close them so only new correctly-voiced prompts show.
+try {
+  const result = sqlite.prepare(
+    `UPDATE prompt_queue SET status = 'flushed_pre_voice_fix'
+     WHERE status = 'open' AND created_at < '2026-04-09T00:00:00'`
+  ).run();
+  if (result.changes > 0) console.log(`[db] Flushed ${result.changes} pre-fix prompt_queue entries`);
+} catch (e) { console.error('[db] prompt_queue flush error (non-fatal):', e); }
+
 console.log(`[db] Connected: ${dbPath}`);
