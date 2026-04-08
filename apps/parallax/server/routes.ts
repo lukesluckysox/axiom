@@ -3750,7 +3750,7 @@ Return ONLY valid JSON:
         data_vec: JSON.stringify(dataVec),
         self_archetype: selfArchetype,
         data_archetype: dataArchetype,
-        feeling_text: summary ? `[Liminal: ${toolSlug}] ${summary}` : `[Liminal session: ${toolSlug}]`,
+        feeling_text: summary ? `[reflection: ${toolSlug}] ${summary}` : `[reflective session: ${toolSlug}]`,
         spotify_summary: null,
         fitness_summary: `liminal:${toolSlug}`,
         llm_narrative: summary || null,
@@ -3760,7 +3760,7 @@ Return ONLY valid JSON:
       const writing = storage.createWriting({
         user_id: userId,
         timestamp,
-        title: `Liminal Session — ${toolSlug} (${sessionId})`,
+        title: `Reflective session — ${toolSlug} (${sessionId})`,
         content: inputText || "",
         date_written: timestamp.substring(0, 10),
         analysis: structuredOutput ? JSON.stringify(structuredOutput) : null,
@@ -3791,7 +3791,7 @@ Return ONLY valid JSON:
         ...(scaledNudges as any),
       });
       emitForRecord(userId, writing.id, {
-        title: `Liminal: ${toolSlug}`,
+        title: `Reflective session: ${toolSlug}`,
         content: inputText || "",
         timestamp,
       });

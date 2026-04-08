@@ -10,6 +10,7 @@
   <meta property="og:type" content="website" />
 
   <!-- PWA / Homescreen icon -->
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="manifest" href="/manifest.json">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1832,6 +1833,15 @@
       color: var(--faint);
     }
 
+    /* ── inline loop mark next to "Lumen" ── */
+    .lumen-loop-inline {
+      display: inline-block;
+      vertical-align: middle;
+      margin-right: .35em;
+      position: relative;
+      top: -0.05em;
+    }
+
   </style>
 </head>
 <body>
@@ -1878,7 +1888,7 @@
       </svg>
     </div>
 
-    <p class="gate__wordmark">Lumen</p>
+    <p class="gate__wordmark"><svg class="lumen-loop-inline" width="28" height="28" viewBox="0 0 64 64" fill="none" aria-hidden="true"><path d="M32 4C47.46 4 60 16.54 60 32S47.46 60 32 60" stroke="#FFD166" stroke-width="1.6" stroke-linecap="round" opacity=".6"/><path d="M32 60C16.54 60 4 47.46 4 32S16.54 4 32 4" stroke="#FFD166" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="4 3" opacity=".25"/><circle cx="32" cy="4" r="2.5" fill="#FFD166" opacity=".8"/><line x1="32" y1="14" x2="32" y2="22" stroke="#FFD166" stroke-width="1.4" stroke-linecap="round" opacity=".7"/><line x1="50" y1="32" x2="42" y2="32" stroke="currentColor" stroke-width=".8" stroke-linecap="round" opacity=".2"/><line x1="32" y1="50" x2="32" y2="42" stroke="currentColor" stroke-width=".8" stroke-linecap="round" opacity=".2"/><line x1="14" y1="32" x2="22" y2="32" stroke="currentColor" stroke-width=".8" stroke-linecap="round" opacity=".2"/><circle cx="32" cy="32" r="5" fill="#FFD166" opacity=".5"/><circle cx="32" cy="32" r="3" fill="#FFD166" opacity=".8"/><circle cx="32" cy="32" r="1.5" fill="#FFD166"/></svg>Lumen</p>
     <hr class="gate__rule" aria-hidden="true" />
     <p class="gate__phrase">Where reflection becomes structure.</p>
 
@@ -1971,7 +1981,7 @@
           <circle cx="16" cy="16" r="4"   fill="#FFD166" opacity=".7"/>
           <circle cx="16" cy="16" r="2.2" fill="#FFD166" opacity=".95"/>
         </svg>
-        <span class="nav__name">Lumen</span>
+        <span class="nav__name"><svg class="lumen-loop-inline" width="18" height="18" viewBox="0 0 64 64" fill="none" aria-hidden="true"><path d="M32 4C47.46 4 60 16.54 60 32S47.46 60 32 60" stroke="#FFD166" stroke-width="1.6" stroke-linecap="round" opacity=".6"/><path d="M32 60C16.54 60 4 47.46 4 32S16.54 4 32 4" stroke="#FFD166" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="4 3" opacity=".25"/><circle cx="32" cy="4" r="2.5" fill="#FFD166" opacity=".8"/><line x1="32" y1="14" x2="32" y2="22" stroke="#FFD166" stroke-width="1.4" stroke-linecap="round" opacity=".7"/><line x1="50" y1="32" x2="42" y2="32" stroke="currentColor" stroke-width=".8" stroke-linecap="round" opacity=".2"/><line x1="32" y1="50" x2="32" y2="42" stroke="currentColor" stroke-width=".8" stroke-linecap="round" opacity=".2"/><line x1="14" y1="32" x2="22" y2="32" stroke="currentColor" stroke-width=".8" stroke-linecap="round" opacity=".2"/><circle cx="32" cy="32" r="5" fill="#FFD166" opacity=".5"/><circle cx="32" cy="32" r="3" fill="#FFD166" opacity=".8"/><circle cx="32" cy="32" r="1.5" fill="#FFD166"/></svg>Lumen</span>
       </a>
 
       <ul class="nav__links" role="list">
@@ -2062,7 +2072,7 @@
       </svg>
     </div>
 
-    <span class="hero__kicker">Lumen</span>
+    <span class="hero__kicker"><svg class="lumen-loop-inline" width="22" height="22" viewBox="0 0 64 64" fill="none" aria-hidden="true"><path d="M32 4C47.46 4 60 16.54 60 32S47.46 60 32 60" stroke="#FFD166" stroke-width="1.6" stroke-linecap="round" opacity=".6"/><path d="M32 60C16.54 60 4 47.46 4 32S16.54 4 32 4" stroke="#FFD166" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="4 3" opacity=".25"/><circle cx="32" cy="4" r="2.5" fill="#FFD166" opacity=".8"/><line x1="32" y1="14" x2="32" y2="22" stroke="#FFD166" stroke-width="1.4" stroke-linecap="round" opacity=".7"/><line x1="50" y1="32" x2="42" y2="32" stroke="currentColor" stroke-width=".8" stroke-linecap="round" opacity=".2"/><line x1="32" y1="50" x2="32" y2="42" stroke="currentColor" stroke-width=".8" stroke-linecap="round" opacity=".2"/><line x1="14" y1="32" x2="22" y2="32" stroke="currentColor" stroke-width=".8" stroke-linecap="round" opacity=".2"/><circle cx="32" cy="32" r="5" fill="#FFD166" opacity=".5"/><circle cx="32" cy="32" r="3" fill="#FFD166" opacity=".8"/><circle cx="32" cy="32" r="1.5" fill="#FFD166"/></svg>Lumen</span>
 
     <h1 class="hero__headline up">
       Where reflection<br>becomes structure.
@@ -2408,7 +2418,7 @@
 ═══════════════════════════════════════════╗ -->
 <footer class="footer">
   <div class="wrap footer__row">
-    <span class="footer__brand">Lumen</span>
+    <span class="footer__brand"><svg class="lumen-loop-inline" width="18" height="18" viewBox="0 0 64 64" fill="none" aria-hidden="true"><path d="M32 4C47.46 4 60 16.54 60 32S47.46 60 32 60" stroke="#FFD166" stroke-width="1.6" stroke-linecap="round" opacity=".6"/><path d="M32 60C16.54 60 4 47.46 4 32S16.54 4 32 4" stroke="#FFD166" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="4 3" opacity=".25"/><circle cx="32" cy="4" r="2.5" fill="#FFD166" opacity=".8"/><line x1="32" y1="14" x2="32" y2="22" stroke="#FFD166" stroke-width="1.4" stroke-linecap="round" opacity=".7"/><line x1="50" y1="32" x2="42" y2="32" stroke="currentColor" stroke-width=".8" stroke-linecap="round" opacity=".2"/><line x1="32" y1="50" x2="32" y2="42" stroke="currentColor" stroke-width=".8" stroke-linecap="round" opacity=".2"/><line x1="14" y1="32" x2="22" y2="32" stroke="currentColor" stroke-width=".8" stroke-linecap="round" opacity=".2"/><circle cx="32" cy="32" r="5" fill="#FFD166" opacity=".5"/><circle cx="32" cy="32" r="3" fill="#FFD166" opacity=".8"/><circle cx="32" cy="32" r="1.5" fill="#FFD166"/></svg>Lumen</span>
     <span class="footer__tag">An operating system for the examined life.</span>
   </div>
 </footer>
@@ -2993,6 +3003,13 @@ async function setSensitivity(val) {
     setTimeout(() => document.querySelectorAll('.hero .up').forEach(el => el.classList.add('in')), 80)
   );
 })();
+</script>
+
+<!-- Service Worker registration for PWA -->
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(function() {});
+}
 </script>
 
 </body>

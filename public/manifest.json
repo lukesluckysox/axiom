@@ -7,6 +7,7 @@
   "background_color": "#191b2a",
   "theme_color": "#191b2a",
   "orientation": "portrait",
+  "scope": "/",
   "icons": [
     {
       "src": "/icon-192.png",

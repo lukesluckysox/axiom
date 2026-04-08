@@ -11,9 +11,9 @@ interface Seed {
 }
 
 const SOURCE_LABELS: Record<string, string> = {
-  axiom: 'From your Constitution',
-  parallax: 'From your Patterns',
-  praxis: 'From your Experiments',
+  axiom: 'Constitutional insight',
+  parallax: 'Pattern observed',
+  praxis: 'Experiment concluded',
 };
 
 const EVENT_LABELS: Record<string, string> = {
@@ -27,6 +27,7 @@ const EVENT_LABELS: Record<string, string> = {
 // ─── Client-side distillation safety net ──────────────────────────────────────
 // Ensures no tool names leak even from legacy seeds or future pipeline gaps.
 const DISTILL_RULES: [RegExp, string][] = [
+  // Specific phrases first
   [/Parallax\s+calls\s+you/gi, 'I am called'],
   [/Parallax\s+detected\s+a\s+gap/gi, 'A gap was detected'],
   [/Parallax\s+identified/gi, 'Pattern recognition identified'],
@@ -36,6 +37,10 @@ const DISTILL_RULES: [RegExp, string][] = [
   [/Liminal\s+surfaced:?\s*/gi, 'Reflection surfaced: '],
   [/(?:in|during)\s+your\s+next\s+Liminal\s+session/gi, 'in your next reflection'],
   [/Liminal\s+sessions/gi, 'reflective sessions'],
+  [/Axiom\s+review/gi, 'constitutional review'],
+  [/queued\s+for\s+Axiom/gi, 'queued for review'],
+  [/Cross-tool\s+agreement/gi, 'Cross-method agreement'],
+  // Generic fallback — bare tool names
   [/\bParallax\b/g, 'observation'],
   [/\bLiminal\b/g, 'reflection'],
   [/\bPraxis\b/g, 'experimentation'],
@@ -69,7 +74,7 @@ export function InquirySeeds({ onSelectSeed }: { onSelectSeed?: (text: string) =
         The Loop Returns
       </h3>
       <p className="text-xs text-[#8D99AE]/60 mb-4">
-        Your other tools have surfaced new questions for inquiry.
+        New questions have surfaced from the loop.
       </p>
       <div className="space-y-3">
         {seeds.map((seed) => (
