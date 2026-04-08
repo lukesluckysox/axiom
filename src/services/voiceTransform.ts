@@ -171,18 +171,19 @@ function youToI(text: string): string {
 function iToProvenance(text: string): string {
   let result = text;
 
-  result = result.replace(/\bI am\b/g, 'user states they are');
-  result = result.replace(/\bI was\b/g, 'user stated they were');
-  result = result.replace(/\bI have\b/g, 'user has');
-  result = result.replace(/\bI've\b/g, "user has");
-  result = result.replace(/\bI feel\b/g, 'user feels');
-  result = result.replace(/\bI think\b/g, 'user thinks');
-  result = result.replace(/\bI believe\b/g, 'user believes');
-  result = result.replace(/\bI know\b/g, 'user indicates knowing');
-  result = result.replace(/\bI need\b/g, 'user needs');
-  result = result.replace(/\bI want\b/g, 'user wants');
-  result = result.replace(/\bI tend\b/g, 'user tends');
-  result = result.replace(/\bI often\b/g, 'user often');
+  result = result.replace(/\bI am\b/gi, 'user states they are');
+  result = result.replace(/\bI('m)\b/gi, 'user is');
+  result = result.replace(/\bI was\b/gi, 'user stated they were');
+  result = result.replace(/\bI have\b/gi, 'user has');
+  result = result.replace(/\bI've\b/gi, 'user has');
+  result = result.replace(/\bI feel\b/gi, 'user feels');
+  result = result.replace(/\bI think\b/gi, 'user thinks');
+  result = result.replace(/\bI believe\b/gi, 'user believes');
+  result = result.replace(/\bI know\b/gi, 'user indicates knowing');
+  result = result.replace(/\bI need\b/gi, 'user needs');
+  result = result.replace(/\bI want\b/gi, 'user wants');
+  result = result.replace(/\bI tend\b/gi, 'user tends');
+  result = result.replace(/\bI often\b/gi, 'user often');
 
   // Catch-all "I" at sentence start → "user"
   result = result.replace(/(?<=^|[.!?]\s+)I\b/gm, 'User');
