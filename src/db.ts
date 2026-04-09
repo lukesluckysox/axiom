@@ -46,6 +46,17 @@ const dbPath = process.env.RAILWAY_VOLUME_MOUNT_PATH
 // Ensure the parent directory exists (Railway volumes may not be pre-created)
 fs.mkdirSync(path.dirname(dbPath), { recursive: true });
 
+// ─── Startup diagnostics ──────────────────────────────────────────────────────
+const volumeSet = !!process.env.RAILWAY_VOLUME_MOUNT_PATH;
+console.log(`[lumen/db] SQLite path: ${dbPath}`);
+console.log(`[lumen/db] RAILWAY_VOLUME_MOUNT_PATH: ${process.env.RAILWAY_VOLUME_MOUNT_PATH ?? '(NOT SET)'}`);
+console.log(`[lumen/db] Persistent volume: ${volumeSet ? 'YES' : 'NO — data will be lost on redeploy'}`);
+if (!volumeSet) {
+  console.warn('[lumen/db] ⚠️  Set RAILWAY_VOLUME_MOUNT_PATH in Railway Variables to persist data across deploys.');
+}
+const dbExists = fs.existsSync(dbPath);
+console.log(`[lumen/db] DB file exists: ${dbExists}${dbExists ? ` (${(fs.statSync(dbPath).size / 1024).toFixed(1)} KB)` : ' — will create fresh'}`);
+
 export const sqlite = new Database(dbPath);
 sqlite.pragma('journal_mode = WAL');
 sqlite.pragma('foreign_keys = ON');
