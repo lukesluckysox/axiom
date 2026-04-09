@@ -80,6 +80,18 @@ const REWRITE_RULES: RewriteRule[] = [
   { pattern: /as\s+a\s+held\s+belief\s*\(Liminal\)\s*and\s+as\s+a\s+behavioral\s+tendency\s*\(Parallax\)/gi,
     replacement: 'as a held belief and as a behavioral tendency' },
 
+  // ── App meta-language cleanup (remove internal UI references) ────────────
+  { pattern: /\b(\d+)\s+consecutive\s+check-?ins?\b/gi,              replacement: '$1 consecutive sessions' },
+  { pattern: /\b(\d+)\s+check-?ins?\s+over/gi,                       replacement: '$1 sessions over' },
+  { pattern: /\bacross\s+(\d+)\s+check-?ins?/gi,                      replacement: 'across $1 sessions' },
+  { pattern: /\bcheck-?ins?\b/gi,                                     replacement: 'sessions' },
+  { pattern: /\bself-?report(?:ed)?\b/gi,                             replacement: 'personal' },
+  { pattern: /\bdata[- ]driven archetype\b/gi,                        replacement: 'observed pattern' },
+  { pattern: /\bself[- ]archetype\b/gi,                               replacement: 'orientation' },
+  { pattern: /\bself[- ]vec\b/gi,                                     replacement: 'state' },
+  { pattern: /\bdata[- ]vec\b/gi,                                     replacement: 'observed state' },
+  { pattern: /\bconfidence score\b/gi,                                replacement: 'confidence' },
+
   // ── Epistemic pipeline / queue / internal language cleanup ──────────────────
   { pattern: /\bepistemic queue\b/gi,                                  replacement: 'your reflections' },
   { pattern: /\bepistemic event\b/gi,                                  replacement: 'moment of inquiry' },

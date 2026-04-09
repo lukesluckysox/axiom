@@ -46,11 +46,11 @@ export async function pushCandidateToAxiomtool(candidate: typeof epistemicCandid
     // ── Signal: specific observable fact — first-person for Axiom ────────────
     let signal: string;
     if (isParallax && frequency) {
-      signal = `I orient toward "${cleanTitle}" — this pattern appeared across ${frequency} distinct observation sessions, making it a primary recurring mode rather than a situational response.`;
+      signal = `I keep coming back to "${cleanTitle}" — it showed up across ${frequency} separate moments, which makes it more than situational.`;
     } else if (isParallax) {
-      signal = `I demonstrate "${cleanTitle}" as a recurring orientation across check-in and writing data.`;
+      signal = `"${cleanTitle}" keeps showing up in how I behave and reflect.`;
     } else if (isLiminal) {
-      signal = `I return repeatedly to "${cleanTitle}" as a live belief or identity frame across independent reflection sessions.`;
+      signal = `I keep returning to "${cleanTitle}" as something I believe or identify with across separate reflections.`;
     } else {
       signal = transformForAxiom(candidate.summary);
     }
@@ -58,36 +58,36 @@ export async function pushCandidateToAxiomtool(candidate: typeof epistemicCandid
     // ── Convergence: structural alignment — first-person ────────────────────
     let convergence: string;
     if (isParallax && frequency && frequency >= 10) {
-      convergence = `I have expressed this orientation across ${frequency} independent sessions — a frequency that makes it structurally durable rather than situational. This is not how I respond sometimes; it is how I tend to process experience.`;
+      convergence = `This has appeared ${frequency} separate times — it's not situational, it's how I tend to operate.`;
     } else if (isParallax && frequency) {
-      convergence = `I have demonstrated this pattern across ${frequency} distinct sessions. Emerging consistency — not yet structurally certain, but above noise. I should treat this as a working orientation pending further confirmation.`;
+      convergence = `This pattern appeared ${frequency} times. Consistent enough to be real, still worth watching.`;
     } else if (isLiminal) {
-      convergence = `I have returned to this independently across separate reflection sessions — each one a fresh inquiry. This is not a passing thought; it recurs because it is load-bearing in how I understand myself.`;
+      convergence = `I've come back to this across separate reflections — each time independently. It recurs because it matters to how I see myself.`;
     } else {
-      convergence = `I hold this pattern at ${confScore}% confidence across available evidence. ${confScore >= 70 ? 'I can treat this as a working doctrine.' : 'I should interpret this provisionally — the evidence is emergent.'}`;
+      convergence = `I hold this at ${confScore}% confidence. ${confScore >= 70 ? 'Strong enough to act on.' : 'Still emerging — worth watching.'}`;
     }
 
     // ── Interpretation: one level above the evidence — first-person ─────────
-    const strengthWord = confScore >= 80 ? 'primary' : confScore >= 60 ? 'significant' : 'notable';
     let interpretation: string;
     if (isParallax) {
-      interpretation = `"${cleanTitle}" functions as a default cognitive frame for me — this is how I process experience before I interpret it. ${confScore < 60 ? 'The evidence is moderate; I should treat this as a working hypothesis rather than settled truth.' : 'The confidence is sufficient to treat this as a structurally present tendency in how I operate.'}`;
+      interpretation = `"${cleanTitle}" is part of how I process things by default — not just a one-time response. ${confScore < 60 ? 'The evidence is moderate, so I\'m treating this as a hypothesis for now.' : 'There\'s enough evidence to take this seriously as part of how I work.'}`;
     } else if (isLiminal) {
-      interpretation = `"${cleanTitle}" functions as an anchor concept for me — a reference frame from which I evaluate other beliefs. ${confScore < 60 ? 'The evidence is provisional; this may be more situational than structural.' : 'Its recurrence indicates it is load-bearing in my current self-model.'}`;
+      interpretation = `"${cleanTitle}" anchors how I evaluate other beliefs. ${confScore < 60 ? 'Still provisional — might be more situational than structural.' : 'It keeps showing up, which means it\'s load-bearing.'}`;
     } else {
-      interpretation = `I hold this as a ${strengthWord} and durable tendency at ${confScore}% confidence. ${confScore < 60 ? 'I should interpret this provisionally.' : 'I can treat this as working doctrine pending contradictory evidence.'}`;
+      const strengthWord = confScore >= 80 ? 'strong' : confScore >= 60 ? 'real' : 'emerging';
+      interpretation = `This is a ${strengthWord} tendency at ${confScore}% confidence. ${confScore < 60 ? 'Still provisional.' : 'Solid enough to guide decisions until contradicted.'}`;
     }
 
     // ── Truth Claim: distilled first-person epistemic claim ──────────────────
     let truthClaim: string;
     if (isParallax && frequency) {
-      truthClaim = `I tend toward "${cleanTitle}" — consistent enough across ${frequency} independent observations to be structural rather than incidental. This is how I process experience, not just how it appears in a given moment.`;
+      truthClaim = `I am someone who "${cleanTitle.toLowerCase()}" — this showed up ${frequency} times independently, which makes it structural, not incidental.`;
     } else if (isParallax) {
-      truthClaim = `I demonstrate "${cleanTitle}" as a recurring operational mode. I treat this as a working doctrine, open to revision.`;
+      truthClaim = `I am someone who "${cleanTitle.toLowerCase()}." This keeps showing up in how I operate.`;
     } else if (isLiminal) {
-      truthClaim = `"${cleanTitle}" is a persistent identity frame or belief I return to independently across reflection — making it load-bearing in my self-model rather than merely reactive.`;
+      truthClaim = `"${cleanTitle}" is something I keep returning to across reflection — it's not reactive, it's part of how I understand myself.`;
     } else {
-      truthClaim = `I hold "${cleanTitle}" as an active pattern at ${confScore}% confidence. ${confScore < 60 ? 'Provisional — I need further evidence before treating this as constitutionally reliable.' : 'I can treat this as working doctrine.'}`;
+      truthClaim = `I hold "${cleanTitle}" at ${confScore}% confidence. ${confScore < 60 ? 'Provisional — needs more evidence.' : 'Solid enough to act on.'}`;
     }
 
     const body = distillPayload({
@@ -134,7 +134,7 @@ export async function pushCandidateToPraxis(candidate: typeof epistemicCandidate
     const body = distillPayload({
       title: candidate.title.slice(0, 200),
       hypothesis: candidate.summary,
-      design: 'This experiment was suggested by patterns in your reflections. Shape it into something you can test.',
+      design: 'This experiment was suggested by patterns in my reflections. Shape it into something I can test.',
       source: ['belief_candidate', 'tension_candidate', 'hypothesis_candidate'].includes(candidate.candidateType) ? 'liminal' : 'parallax',
       status: 'active',
       experimentConstraint: '',

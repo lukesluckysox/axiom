@@ -127,6 +127,20 @@ function youToI(text: string): string {
   result = result.replace(/\bYou want\b/g, 'I want');
   result = result.replace(/\byou want\b/g, 'I want');
 
+  // Question forms: "Are you" → "Am I", "Do you" → "Do I", "Have you" → "Have I"
+  result = result.replace(/\bAre you\b/g, 'Am I');
+  result = result.replace(/\bare you\b/g, 'am I');
+  result = result.replace(/\bDo you\b/g, 'Do I');
+  result = result.replace(/\bdo you\b/g, 'do I');
+  result = result.replace(/\bHave you\b/g, 'Have I');
+  result = result.replace(/\bhave you\b/g, 'have I');
+  result = result.replace(/\bWere you\b/g, 'Was I');
+  result = result.replace(/\bwere you\b/g, 'was I');
+  result = result.replace(/\bWould you\b/g, 'Would I');
+  result = result.replace(/\bwould you\b/g, 'would I');
+  result = result.replace(/\bCan you\b/g, 'Can I');
+  result = result.replace(/\bcan you\b/g, 'can I');
+
   // "you believe" → "I believe"
   result = result.replace(/\bYou believe\b/g, 'I believe');
   result = result.replace(/\byou believe\b/g, 'I believe');
