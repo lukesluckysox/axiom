@@ -51,6 +51,10 @@ function deriveSummary(payload: string, eventType: string): string {
       return snippet.length < p.text.trim().length ? snippet + '…' : snippet;
     }
     if (typeof p.summary === 'string' && p.summary.trim()) return p.summary.trim();
+    if (typeof p.description === 'string' && p.description.trim()) {
+      const snippet = p.description.trim().slice(0, 120);
+      return snippet.length < p.description.trim().length ? snippet + '…' : snippet;
+    }
   } catch {
     // non-parsable payload
   }
