@@ -591,6 +591,30 @@ export default async function Home() {
               </span>
             </div>
           )}
+
+          {!user && (
+            <p
+              style={{
+                marginTop: '2rem',
+                fontSize: 'clamp(0.75rem, 0.7rem + 0.18vw, 0.8125rem)',
+                color: 'rgb(var(--color-text-faint))',
+                letterSpacing: '0.02em',
+              }}
+            >
+              Part of{' '}
+              <a
+                href="https://lumen-os.up.railway.app"
+                style={{
+                  color: 'rgb(var(--color-gold) / 0.55)',
+                  textDecoration: 'none',
+                  borderBottom: '1px solid rgb(var(--color-gold) / 0.15)',
+                }}
+              >
+                Lumen
+              </a>
+              {' '}&mdash; an operating system for the examined life.
+            </p>
+          )}
         </section>
       </main>
     </>

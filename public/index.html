@@ -2959,7 +2959,9 @@ async function setSensitivity(val) {
         if (data.totalEvents === 0) {
           totalEl.innerHTML = '<span class="pulse-empty">The loop is quiet. Begin with any tool.</span>';
         } else {
-          totalEl.innerHTML = '<strong>' + data.totalEvents + '</strong> event' + (data.totalEvents === 1 ? '' : 's') + ' in 7 days';
+          var toolCount = data.byApp ? Object.keys(data.byApp).filter(function(k) { return data.byApp[k] > 0; }).length : 0;
+          var toolWord = toolCount === 1 ? 'tool' : 'tools';
+          totalEl.innerHTML = '<strong>' + data.totalEvents + '</strong> reflection' + (data.totalEvents === 1 ? '' : 's') + ' across ' + toolCount + ' ' + toolWord;
         }
       }
 
