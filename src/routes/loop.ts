@@ -183,10 +183,11 @@ router.get('/state', async (req: Request, res: Response) => {
 
   try {
     // Fetch live counts from all three apps in parallel
+    const uid = String(user.userId);
     const [axiomStats, praxisStats, liminalStats] = await Promise.all([
-      fetchAppStats(`${AXIOM_API_URL}/api/internal/stats`),
-      fetchAppStats(`${PRAXIS_API_URL}/api/internal/stats`),
-      fetchAppStats(`${LIMINAL_API_URL}/api/internal/stats`),
+      fetchAppStats(`${AXIOM_API_URL}/api/internal/stats?userId=${uid}`),
+      fetchAppStats(`${PRAXIS_API_URL}/api/internal/stats?userId=${uid}`),
+      fetchAppStats(`${LIMINAL_API_URL}/api/internal/stats?userId=${uid}`),
     ]);
 
     return res.json({
@@ -199,6 +200,106 @@ router.get('/state', async (req: Request, res: Response) => {
     console.error('[loop/state]', err);
     return res.status(500).json({ error: 'Failed to load state.' });
   }
+});
+
+// ─── GET /api/loop/health ────────────────────────────────────────────────────
+// Diagnostic endpoint: verifies connectivity to all sub-apps,
+// checks token configuration, and reports the Loop's operational status.
+
+router.get('/health', async (req: Request, res: Response) => {
+  const user = authenticate(req, res);
+  if (!user) return;
+
+  const checks: Record<string, { status: string; detail?: string; latencyMs?: number }> = {};
+
+  // 1. Check JWT_SECRET is not the dev fallback
+  const jwtOk = !!process.env.JWT_SECRET && process.env.JWT_SECRET !== 'lumen-dev-secret-CHANGE-IN-PRODUCTION';
+  checks.jwtSecret = {
+    status: jwtOk ? 'ok' : 'warning',
+    detail: jwtOk ? 'Production secret configured' : 'Using dev fallback — SSO may fail with sub-apps',
+  };
+
+  // 2. Check LUMEN_INTERNAL_TOKEN is set
+  const tokenOk = !!process.env.LUMEN_INTERNAL_TOKEN && process.env.LUMEN_INTERNAL_TOKEN !== 'your-shared-internal-token';
+  checks.internalToken = {
+    status: tokenOk ? 'ok' : 'error',
+    detail: tokenOk ? 'Token configured' : 'LUMEN_INTERNAL_TOKEN not set — Loop events will silently fail',
+  };
+
+  // 3. Check sub-app URLs are configured
+  checks.subAppUrls = {
+    status: (AXIOM_API_URL && PRAXIS_API_URL && LIMINAL_API_URL) ? 'ok' : 'warning',
+    detail: [
+      AXIOM_API_URL ? null : 'AXIOM_API_URL missing',
+      PRAXIS_API_URL ? null : 'PRAXIS_API_URL missing',
+      LIMINAL_API_URL ? null : 'LIMINAL_API_URL missing',
+    ].filter(Boolean).join(', ') || 'All sub-app URLs configured',
+  };
+
+  // 4. Ping each sub-app's stats endpoint
+  async function pingApp(name: string, url: string): Promise<void> {
+    const start = Date.now();
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 5000);
+      const r = await fetch(`${url}/api/internal/stats?userId=${user!.userId}`, {
+        headers: { 'x-lumen-internal-token': LUMEN_INTERNAL_TOKEN },
+        signal: controller.signal,
+      });
+      clearTimeout(timeout);
+      const latencyMs = Date.now() - start;
+      if (r.ok) {
+        const data = await r.json();
+        checks[name] = { status: 'ok', detail: JSON.stringify(data), latencyMs };
+      } else {
+        checks[name] = { status: 'error', detail: `HTTP ${r.status}`, latencyMs };
+      }
+    } catch (e: any) {
+      checks[name] = { status: 'error', detail: e.name === 'AbortError' ? 'Timeout (5s)' : e.message, latencyMs: Date.now() - start };
+    }
+  }
+
+  await Promise.all([
+    pingApp('axiom', AXIOM_API_URL),
+    pingApp('praxis', PRAXIS_API_URL),
+    pingApp('liminal', LIMINAL_API_URL),
+  ]);
+
+  // 5. Check local event data
+  try {
+    const row = sqlite.prepare(
+      `SELECT COUNT(*) as total,
+              SUM(CASE WHEN created_at > datetime('now', '-1 day') THEN 1 ELSE 0 END) as last24h
+       FROM epistemic_events WHERE user_id = ?`
+    ).get(String(user.userId)) as { total: number; last24h: number };
+    checks.localEvents = {
+      status: 'ok',
+      detail: `${row.total} total events, ${row.last24h} in last 24h`,
+    };
+  } catch (e: any) {
+    checks.localEvents = { status: 'error', detail: e.message };
+  }
+
+  // 6. Check queue for stuck candidates
+  try {
+    const stuckRow = sqlite.prepare(
+      `SELECT COUNT(*) as count FROM epistemic_candidates
+       WHERE user_id = ? AND status = 'open'
+       AND updated_at < datetime('now', '-1 hour')`
+    ).get(String(user.userId)) as { count: number };
+    checks.stuckCandidates = {
+      status: stuckRow.count > 0 ? 'warning' : 'ok',
+      detail: stuckRow.count > 0 ? `${stuckRow.count} candidates stuck in 'open' for >1 hour` : 'No stuck candidates',
+    };
+  } catch (e: any) {
+    checks.stuckCandidates = { status: 'error', detail: e.message };
+  }
+
+  const overallStatus = Object.values(checks).some(c => c.status === 'error') ? 'degraded'
+    : Object.values(checks).some(c => c.status === 'warning') ? 'warning'
+    : 'healthy';
+
+  return res.json({ status: overallStatus, checks });
 });
 
 export { router as loopRouter };

@@ -140,7 +140,7 @@ async function processLiminalEvent(event: EpistemicEvent): Promise<void> {
           candidateType: 'tension_candidate',
           title: payload.summary || 'Tension detected',
           summary: payload.text || 'A tension was noticed in your writing',
-          status: 'open',
+          status: 'queued_for_axiom',
           targetApp: 'axiom',
           confidence: event.confidence,
           sourceEventIds: [event.id],
