@@ -4392,5 +4392,110 @@ if ('serviceWorker' in navigator) {
   </div>
 </div>
 
+<!-- ── Guided First-Session Onboarding Overlay ── -->
+<div id="onboarding-overlay" style="display:none; position:fixed; inset:0; z-index:9998; background:var(--bg); align-items:center; justify-content:center;">
+  <div id="onboarding-card" style="max-width:480px; padding:2rem; text-align:center;">
+    <!-- JS populates this -->
+  </div>
+</div>
+
+<script>
+(function() {
+  var STEPS = [
+    { heading: "The examined life begins here.", body: "Lumen is four instruments working as one system. Each feeds the next. Start with one session in Liminal \u2014 everything else follows.", cta: "Begin in Liminal \u2192", highlight: 0 },
+    { heading: "Session complete.", body: "Your reflection is now flowing through the system. Parallax is reading it for patterns.", cta: "See what Parallax found \u2192", highlight: 1 },
+    { heading: "Patterns recognized.", body: "Parallax detected signals in your reflection. These become hypotheses for Praxis to test.", cta: "Review in Praxis \u2192", highlight: 2 },
+    { heading: "Hypothesis proposed.", body: "A belief surfaced for testing. As you observe and record results, the findings flow to Axiom.", cta: "See Axiom \u2192", highlight: 3 },
+    { heading: "The Loop is alive.", body: "Each session feeds the next. The more you reflect, the sharper the system becomes.", cta: "Enter Lumen", highlight: -1 }
+  ];
+
+  var APP_URLS = ['https://liminal-app.up.railway.app', 'https://parallaxapp.up.railway.app', 'https://praxis-app.up.railway.app', 'https://axiomtool-production.up.railway.app'];
+  var currentStep = 0;
+  var overlay = document.getElementById('onboarding-overlay');
+  var card = document.getElementById('onboarding-card');
+  var pollTimer = null;
+
+  function getStepFromSummary(s) {
+    if (!s || (s.sessions === 0 && s.patterns === 0 && s.experiments === 0 && s.axioms === 0)) return 0;
+    if (s.sessions > 0 && s.patterns === 0) return 1;
+    if (s.patterns > 0 && s.experiments === 0) return 2;
+    if (s.experiments > 0 && s.axioms === 0) return 3;
+    return 4;
+  }
+
+  function renderStep(step) {
+    var s = STEPS[step];
+    var nodes = [{name:'Liminal',color:'#9c8654',x:100,y:15},{name:'Parallax',color:'#4d8c9e',x:185,y:100},{name:'Praxis',color:'#c4943e',x:100,y:185},{name:'Axiom',color:'#3d7bba',x:15,y:100}];
+    var svgNodes = nodes.map(function(n, i) {
+      var isHighlight = s.highlight === i || s.highlight === -1;
+      var opacity = isHighlight ? 1 : 0.25;
+      var r = isHighlight ? 7 : 5;
+      return '<circle cx="'+n.x+'" cy="'+n.y+'" r="'+r+'" fill="'+n.color+'" opacity="'+opacity+'"/>' +
+        '<text x="'+n.x+'" y="'+(n.y+18)+'" text-anchor="middle" fill="'+(isHighlight ? 'rgba(255,209,102,0.7)' : 'rgba(255,255,255,0.15)')+'" font-size="8" font-family="Satoshi,sans-serif" font-weight="500" letter-spacing="0.12em" text-transform="uppercase">'+n.name.toUpperCase()+'</text>';
+    }).join('');
+
+    var svg = '<svg width="200" height="220" viewBox="0 0 200 220" style="margin:0 auto 1.5rem">' +
+      '<path d="M100,15 L185,100 L100,185 L15,100 Z" fill="none" stroke="rgba(255,209,102,0.1)" stroke-width="1"/>' +
+      svgNodes + '</svg>';
+
+    card.innerHTML = svg +
+      '<h2 style="font-family:Cormorant,serif;font-size:clamp(1.5rem,1.2rem+1.25vw,2rem);font-weight:300;color:var(--text);margin-bottom:1rem;">' + s.heading + '</h2>' +
+      '<p style="font-family:Satoshi,sans-serif;font-size:var(--text-sm);color:var(--muted);line-height:1.7;margin-bottom:2rem;max-width:38ch;margin-left:auto;margin-right:auto;">' + s.body + '</p>' +
+      '<button id="onboarding-cta" style="font-family:Satoshi,sans-serif;font-size:var(--text-sm);font-weight:500;letter-spacing:0.06em;color:var(--gold);background:rgba(255,209,102,0.08);border:1px solid rgba(255,209,102,0.2);border-radius:6px;padding:0.75rem 2rem;cursor:pointer;transition:background 0.2s;">' + s.cta + '</button>';
+
+    document.getElementById('onboarding-cta').addEventListener('click', function() {
+      if (step === 4) {
+        localStorage.setItem('lumen_onboarding_complete', 'true');
+        overlay.style.display = 'none';
+        if (pollTimer) clearInterval(pollTimer);
+      } else {
+        var ssoLinks = document.querySelectorAll('[data-has-sso="true"]');
+        var targetUrl = APP_URLS[step];
+        for (var i = 0; i < ssoLinks.length; i++) {
+          if (ssoLinks[i].href && ssoLinks[i].href.indexOf(targetUrl) !== -1) {
+            window.open(ssoLinks[i].href, '_blank');
+            return;
+          }
+        }
+        window.open(targetUrl, '_blank');
+      }
+    });
+  }
+
+  function startPolling() {
+    pollTimer = setInterval(async function() {
+      try {
+        var res = await fetch('/api/loop/summary', { credentials: 'same-origin' });
+        if (!res.ok) return;
+        var data = await res.json();
+        var newStep = getStepFromSummary(data);
+        if (newStep > currentStep) {
+          currentStep = newStep;
+          renderStep(currentStep);
+        }
+      } catch(e) {}
+    }, 5000);
+  }
+
+  var origLoadCockpit = window.loadCockpit;
+  window.loadCockpit = async function() {
+    if (origLoadCockpit) await origLoadCockpit();
+    if (localStorage.getItem('lumen_onboarding_complete')) return;
+    try {
+      var res = await fetch('/api/loop/summary', { credentials: 'same-origin' });
+      if (!res.ok) return;
+      var data = await res.json();
+      var step = getStepFromSummary(data);
+      if (step < 4) {
+        currentStep = step;
+        overlay.style.display = 'flex';
+        renderStep(currentStep);
+        startPolling();
+      }
+    } catch(e) {}
+  };
+})();
+</script>
+
 </body>
 </html>
