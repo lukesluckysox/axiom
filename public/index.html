@@ -3019,6 +3019,18 @@ async function setSensitivity(val) {
       }).join('\n');
 
       container.innerHTML = html;
+
+      // Auto-expand feed when there are events so Recent Activity is always visible
+      var band = document.getElementById('cockpit-feed');
+      var btn  = document.getElementById('feed-toggle');
+      if (band && !band.classList.contains('feed-band--open')) {
+        band.classList.add('feed-band--open');
+        if (btn) {
+          btn.setAttribute('aria-expanded', 'true');
+          var label = btn.querySelector('.feed-toggle__label');
+          if (label) label.textContent = 'Hide';
+        }
+      }
     } catch {}
   }
 
