@@ -2370,7 +2370,7 @@
           </div>
         </div>
         <div class="nav__user" id="nav-user" aria-live="polite">
-          <button class="nav__username" type="button" aria-label="Open profile" onclick="document.getElementById('profile-backdrop').classList.add('profile-backdrop--open');document.getElementById('profile-panel').classList.add('profile-panel--open');document.body.style.overflow='hidden';"></button>
+          <button class="nav__username" type="button" aria-label="Open profile" onclick="document.getElementById('profile-backdrop').classList.add('profile-backdrop--open');document.getElementById('profile-panel').classList.add('profile-panel--open');document.body.style.overflow='hidden';if(window.__lumenLoadProfile)window.__lumenLoadProfile();"></button>
           <button class="nav__signout" id="nav-signout" aria-label="Sign out of Lumen">Sign out</button>
         </div>
       </div>
@@ -3970,6 +3970,8 @@ if ('serviceWorker' in navigator) {
       loadProfile();
     });
   }
+
+  window.__lumenLoadProfile = loadProfile;
 
   // Try immediately and also after any DOM update (for async auth reveal)
   wireUsernameClick();
