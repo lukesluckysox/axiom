@@ -186,6 +186,40 @@ router.get('/sso-token', (req: Request, res: Response) => {
   }
 });
 
+// ─── GET /api/auth/profile ───────────────────────────────────────────────────
+
+const OWNER_USERNAME = 'lukesluckysox';
+
+router.get('/profile', (req: Request, res: Response) => {
+  const token = (req.cookies as Record<string, string>)?.[COOKIE_NAME];
+  if (!token) return res.status(401).json({ error: 'Not authenticated.' });
+
+  try {
+    const payload = jwt.verify(token, JWT_SECRET) as { userId: number; username: string };
+    const user = db
+      .select({ username: users.username, email: users.email, sensitivity: users.sensitivity, createdAt: users.createdAt })
+      .from(users)
+      .where(eq(users.id, payload.userId))
+      .get();
+
+    if (!user) {
+      res.clearCookie(COOKIE_NAME);
+      return res.status(401).json({ error: 'User not found.' });
+    }
+
+    return res.json({
+      username:    user.username,
+      email:       user.email,
+      sensitivity: user.sensitivity ?? 'medium',
+      createdAt:   user.createdAt,
+      isOwner:     user.username === OWNER_USERNAME,
+    });
+  } catch {
+    res.clearCookie(COOKIE_NAME);
+    return res.status(401).json({ error: 'Session expired. Please sign in again.' });
+  }
+});
+
 // ─── GET /api/auth/me ─────────────────────────────────────────────────────────
 
 router.get('/me', (req: Request, res: Response) => {

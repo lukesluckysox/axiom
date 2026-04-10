@@ -1433,7 +1433,12 @@
       letter-spacing: .08em; color: var(--muted);
     }
     .nav__user--visible { display: flex; }
-    .nav__username { color: var(--text); }
+    .nav__username {
+      color: var(--text);
+      cursor: pointer;
+      transition: color 180ms var(--ease);
+    }
+    .nav__username:hover { color: var(--gold); }
     .nav__signout {
       background: transparent; border: 1px solid rgba(141,153,174,.2);
       border-radius: var(--r-sm); cursor: pointer; padding: .25rem .6rem;
@@ -1442,6 +1447,175 @@
       transition: color .2s var(--ease), border-color .2s var(--ease);
     }
     .nav__signout:hover { color: var(--text); border-color: rgba(141,153,174,.4); }
+
+    /* ─────────────────────────────────────────────
+       PROFILE PANEL
+    ───────────────────────────────────────────── */
+    .profile-backdrop {
+      position: fixed; inset: 0; z-index: 8800;
+      background: rgba(14,15,26,.55);
+      backdrop-filter: blur(2px);
+      opacity: 0; pointer-events: none;
+      transition: opacity 260ms var(--ease);
+    }
+    .profile-backdrop--open {
+      opacity: 1; pointer-events: auto;
+    }
+    .profile-panel {
+      position: fixed; top: 0; right: 0; bottom: 0;
+      z-index: 8900;
+      width: 380px; max-width: 100vw;
+      background: var(--surface);
+      border-left: 1px solid var(--border-md);
+      box-shadow: -12px 0 48px rgba(0,0,0,.45);
+      display: flex; flex-direction: column;
+      overflow: hidden;
+      transform: translateX(100%);
+      transition: transform 260ms var(--ease);
+    }
+    .profile-panel--open {
+      transform: translateX(0);
+    }
+    @media (max-width: 480px) {
+      .profile-panel { width: 100vw; border-left: none; }
+    }
+    .profile-panel__head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: var(--sp-5) var(--sp-6);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .profile-panel__title {
+      font-family: var(--font-display); font-size: var(--text-lg);
+      font-weight: 400; color: var(--text); margin: 0;
+      letter-spacing: .02em;
+    }
+    .profile-panel__close {
+      background: none; border: none; cursor: pointer;
+      color: var(--muted); padding: .25rem;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: var(--r-sm);
+      transition: color 180ms var(--ease);
+    }
+    .profile-panel__close:hover { color: var(--text); }
+    .profile-panel__body {
+      flex: 1; overflow-y: auto;
+      padding: var(--sp-6);
+      display: flex; flex-direction: column; gap: var(--sp-6);
+    }
+    /* Profile section */
+    .pf-username {
+      font-family: var(--font-display); font-size: clamp(1.6rem,3vw,2rem);
+      font-weight: 400; color: var(--text); margin: 0 0 var(--sp-4);
+      letter-spacing: .02em; line-height: 1.1;
+    }
+    .pf-field {
+      display: flex; flex-direction: column; gap: .15rem;
+      margin-bottom: var(--sp-3);
+    }
+    .pf-label {
+      font-size: var(--text-xs); letter-spacing: .14em; text-transform: uppercase;
+      color: var(--muted); font-weight: 500;
+    }
+    .pf-value {
+      font-size: var(--text-sm); color: var(--text);
+      font-family: var(--font-body);
+    }
+    .pf-signout {
+      display: inline-flex; align-items: center; gap: .4rem;
+      background: transparent; border: 1px solid var(--border-md);
+      border-radius: var(--r-sm); cursor: pointer;
+      color: var(--muted); font-family: var(--font-body); font-size: var(--text-xs);
+      letter-spacing: .1em; text-transform: uppercase;
+      padding: .4rem .9rem; margin-top: var(--sp-2);
+      transition: color 180ms var(--ease), border-color 180ms var(--ease);
+    }
+    .pf-signout:hover { color: var(--text); border-color: rgba(141,153,174,.45); }
+    /* Oracle divider */
+    .oracle-divider {
+      display: flex; align-items: center; gap: var(--sp-3);
+      border: none; margin: 0;
+    }
+    .oracle-divider::before, .oracle-divider::after {
+      content: ''; flex: 1; height: 1px;
+      background: var(--border-md);
+    }
+    .oracle-divider__label {
+      font-size: var(--text-xs); letter-spacing: .22em; text-transform: uppercase;
+      color: var(--gold); opacity: .7; font-weight: 500;
+      white-space: nowrap;
+    }
+    /* Oracle tabs */
+    .oracle-tabs {
+      display: flex; gap: var(--sp-2); flex-wrap: wrap;
+      margin-bottom: var(--sp-2);
+    }
+    .oracle-tab {
+      background: none; border: 1px solid var(--border);
+      border-radius: var(--r-sm); cursor: pointer;
+      padding: .2rem .65rem;
+      font-family: var(--font-body); font-size: var(--text-xs);
+      letter-spacing: .1em; text-transform: uppercase;
+      color: var(--muted);
+      transition: color 160ms var(--ease), border-color 160ms var(--ease), background 160ms var(--ease);
+      display: flex; align-items: center; gap: .35rem;
+    }
+    .oracle-tab:hover { color: var(--text); border-color: var(--border-md); }
+    .oracle-tab--active {
+      color: var(--text); border-color: var(--border-lg);
+      background: var(--surface-2);
+    }
+    .oracle-tab__dot {
+      width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+      background: var(--muted);
+    }
+    .oracle-tab__dot--online { background: #4ade80; }
+    .oracle-tab__dot--offline { background: rgba(141,153,174,.4); }
+    /* Oracle panel content */
+    .oracle-pane { display: none; }
+    .oracle-pane--active { display: block; }
+    .oracle-count {
+      font-size: var(--text-xs); color: var(--muted); margin-bottom: var(--sp-3);
+      letter-spacing: .04em;
+    }
+    .oracle-count strong { color: var(--text); }
+    .oracle-table {
+      width: 100%; border-collapse: collapse;
+      font-size: var(--text-xs); font-family: var(--font-body);
+    }
+    .oracle-table th {
+      text-align: left; padding: .3rem 0;
+      font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
+      color: var(--muted); border-bottom: 1px solid var(--border);
+      font-weight: 500;
+    }
+    .oracle-table td {
+      padding: .45rem 0; border-bottom: 1px solid var(--border);
+      color: var(--text); vertical-align: top;
+      max-width: 0;
+    }
+    .oracle-table td.trunc {
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      max-width: 100px;
+    }
+    .oracle-table td.muted { color: var(--muted); }
+    .oracle-table tr:last-child td { border-bottom: none; }
+    .oracle-empty {
+      font-size: var(--text-xs); color: var(--muted); padding: var(--sp-4) 0;
+      font-style: italic;
+    }
+    .oracle-loading {
+      display: flex; align-items: center; gap: var(--sp-2);
+      font-size: var(--text-xs); color: var(--muted); padding: var(--sp-2) 0;
+    }
+    @keyframes oracle-spin {
+      to { transform: rotate(360deg); }
+    }
+    .oracle-spinner {
+      width: 12px; height: 12px; border-radius: 50%;
+      border: 1.5px solid var(--border-md); border-top-color: var(--gold);
+      animation: oracle-spin .7s linear infinite; flex-shrink: 0;
+    }
 
     /* ─────────────────────────────────────────────
        COCKPIT — shared wrapper
@@ -3515,6 +3689,299 @@ if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/sw.js').catch(function() {});
 }
 </script>
+
+<!-- ══ Profile Panel Logic ══ -->
+<script>
+(function () {
+  'use strict';
+
+  var backdrop = document.getElementById('profile-backdrop');
+  var panel    = document.getElementById('profile-panel');
+  var closeBtn = document.getElementById('profile-close');
+
+  // ── Open / close ──
+  function openPanel() {
+    backdrop.classList.add('profile-backdrop--open');
+    panel.classList.add('profile-panel--open');
+    backdrop.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closePanel() {
+    backdrop.classList.remove('profile-backdrop--open');
+    panel.classList.remove('profile-panel--open');
+    backdrop.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+  }
+
+  if (closeBtn)  closeBtn.addEventListener('click', closePanel);
+  if (backdrop)  backdrop.addEventListener('click', closePanel);
+
+  // Close on Escape
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && panel && panel.classList.contains('profile-panel--open')) {
+      closePanel();
+    }
+  });
+
+  // Sign out from profile panel
+  var pfSignout = document.getElementById('pf-signout');
+  if (pfSignout) {
+    pfSignout.addEventListener('click', async function () {
+      await fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' });
+      location.reload();
+    });
+  }
+
+  // ── Date formatting ──
+  function formatDate(iso) {
+    if (!iso) return '—';
+    try {
+      var d = new Date(iso);
+      return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    } catch { return iso; }
+  }
+
+  // ── Oracle: build tabs + panes ──
+  var APPS = ['lumen', 'liminal', 'parallax', 'praxis', 'axiom'];
+  var APP_LABELS = { lumen: 'Lumen', liminal: 'Liminal', parallax: 'Parallax', praxis: 'Praxis', axiom: 'Axiom' };
+  var currentOracleTab = 'lumen';
+  var oracleData = null;
+
+  function renderOracleTabs(subAppStatus) {
+    var tabsEl = document.getElementById('oracle-tabs');
+    var panesEl = document.getElementById('oracle-panes');
+    if (!tabsEl || !panesEl) return;
+
+    tabsEl.innerHTML = '';
+    panesEl.innerHTML = '';
+
+    APPS.forEach(function (app) {
+      // Determine status dot: lumen is always online (it's running), others from subAppStatus
+      var status = app === 'lumen' ? 'online' : (subAppStatus[app] || 'offline');
+
+      // Tab button
+      var tab = document.createElement('button');
+      tab.className = 'oracle-tab' + (app === currentOracleTab ? ' oracle-tab--active' : '');
+      tab.setAttribute('data-app', app);
+      tab.innerHTML =
+        '<span class="oracle-tab__dot oracle-tab__dot--' + status + '"></span>' +
+        APP_LABELS[app];
+      tab.addEventListener('click', function () { switchOracleTab(app); });
+      tabsEl.appendChild(tab);
+
+      // Pane
+      var pane = document.createElement('div');
+      pane.className = 'oracle-pane' + (app === currentOracleTab ? ' oracle-pane--active' : '');
+      pane.id = 'oracle-pane-' + app;
+      panesEl.appendChild(pane);
+    });
+
+    renderOraclePane(currentOracleTab);
+  }
+
+  function switchOracleTab(app) {
+    currentOracleTab = app;
+    document.querySelectorAll('.oracle-tab').forEach(function (t) {
+      t.classList.toggle('oracle-tab--active', t.getAttribute('data-app') === app);
+    });
+    document.querySelectorAll('.oracle-pane').forEach(function (p) {
+      p.classList.toggle('oracle-pane--active', p.id === 'oracle-pane-' + app);
+    });
+    renderOraclePane(app);
+  }
+
+  function renderOraclePane(app) {
+    var pane = document.getElementById('oracle-pane-' + app);
+    if (!pane || !oracleData) return;
+
+    // Each tab shows that app's registered users; sub-apps may return []
+    // if /api/internal/users isn't implemented yet — fall back gracefully
+    var rows = oracleData[app] || [];
+
+    if (rows.length === 0) {
+      var status = oracleData.subAppStatus && oracleData.subAppStatus[app];
+      if (app !== 'lumen' && status === 'offline') {
+        pane.innerHTML = '<p class="oracle-empty">Service offline — unable to fetch users.</p>';
+      } else if (app !== 'lumen' && rows.length === 0) {
+        pane.innerHTML = '<p class="oracle-empty">No user data available from this service yet.</p>';
+      } else {
+        pane.innerHTML = '<p class="oracle-empty">No registered users.</p>';
+      }
+      return;
+    }
+
+    var countHtml = '<p class="oracle-count"><strong>' + rows.length + '</strong> registered user' + (rows.length !== 1 ? 's' : '') + '</p>';
+
+    // Lumen has email; sub-apps may only have username
+    var hasEmail = rows.some(function(u) { return u.email; });
+
+    var tableHtml = '<table class="oracle-table"><thead><tr>';
+    tableHtml += '<th style="width:' + (hasEmail ? '35%' : '60%') + '">Username</th>';
+    if (hasEmail) tableHtml += '<th style="width:42%">Email</th>';
+    tableHtml += '<th style="width:23%">Joined</th>';
+    tableHtml += '</tr></thead><tbody>';
+
+    rows.forEach(function (u) {
+      var joined = formatDate(u.createdAt || u.created_at);
+      var shortJoined = joined.replace(/^(\w+ \d+), (\d+)$/, function(_, md, y) { return md + ' \'' + y.slice(2); });
+      var uname = u.username || u.name || '—';
+      tableHtml += '<tr>';
+      tableHtml += '<td class="trunc" title="' + escHtml(uname) + '">' + escHtml(uname) + '</td>';
+      if (hasEmail) tableHtml += '<td class="trunc muted" title="' + escHtml(u.email || '') + '">' + escHtml(u.email || '—') + '</td>';
+      tableHtml += '<td class="muted" style="font-size:10px;white-space:nowrap">' + shortJoined + '</td>';
+      tableHtml += '</tr>';
+    });
+
+    tableHtml += '</tbody></table>';
+    pane.innerHTML = countHtml + tableHtml;
+  }
+
+  function escHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  // ── Fetch profile + optionally oracle ──
+  async function loadProfile() {
+    try {
+      var res = await fetch('/api/auth/profile', { credentials: 'same-origin' });
+      if (!res.ok) return; // not authed
+      var data = await res.json();
+
+      // Populate profile fields
+      var el;
+      el = document.getElementById('pf-username');   if (el) el.textContent = data.username;
+      el = document.getElementById('pf-email');      if (el) el.textContent = data.email;
+      el = document.getElementById('pf-since');      if (el) el.textContent = formatDate(data.createdAt);
+      el = document.getElementById('pf-sensitivity');
+      if (el) {
+        var s = data.sensitivity || 'medium';
+        el.textContent = s.charAt(0).toUpperCase() + s.slice(1);
+      }
+
+      // Show oracle section for owner
+      if (data.isOwner) {
+        var oracleSection = document.getElementById('oracle-section');
+        if (oracleSection) oracleSection.style.display = 'block';
+        loadOracleData();
+      }
+    } catch (err) {
+      console.warn('[profile] load error:', err);
+    }
+  }
+
+  async function loadOracleData() {
+    var loadingEl = document.getElementById('oracle-loading');
+    var contentEl = document.getElementById('oracle-content');
+    if (loadingEl) loadingEl.style.display = 'flex';
+    if (contentEl) contentEl.style.display = 'none';
+
+    try {
+      var res = await fetch('/api/oracle/users', { credentials: 'same-origin' });
+      if (!res.ok) throw new Error('Oracle responded ' + res.status);
+      oracleData = await res.json();
+
+      if (loadingEl) loadingEl.style.display = 'none';
+      if (contentEl) contentEl.style.display = 'block';
+
+      renderOracleTabs(oracleData.subAppStatus || {});
+    } catch (err) {
+      console.warn('[oracle] load error:', err);
+      if (loadingEl) loadingEl.innerHTML = '<span style="color:var(--muted);font-size:var(--text-xs)">Could not load oracle data.</span>';
+    }
+  }
+
+  // ── Wire username click ──
+  // We use a MutationObserver in case the nav user is revealed after DOMContentLoaded
+  function wireUsernameClick() {
+    var nameEl = document.querySelector('.nav__username');
+    if (!nameEl) return;
+    if (nameEl._profileWired) return;
+    nameEl._profileWired = true;
+
+    nameEl.addEventListener('click', function () {
+      openPanel();
+      loadProfile();
+    });
+  }
+
+  // Try immediately and also after any DOM update (for async auth reveal)
+  wireUsernameClick();
+  var observer = new MutationObserver(function () { wireUsernameClick(); });
+  observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
+
+})();
+</script>
+
+<!-- ══ Profile Slide-Over Panel ══ -->
+<div class="profile-backdrop" id="profile-backdrop" aria-hidden="true"></div>
+<div class="profile-panel" id="profile-panel" role="dialog" aria-modal="true" aria-label="Profile">
+
+  <div class="profile-panel__head">
+    <h2 class="profile-panel__title">Profile</h2>
+    <button class="profile-panel__close" id="profile-close" aria-label="Close profile">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M18 6L6 18M6 6l12 12"/>
+      </svg>
+    </button>
+  </div>
+
+  <div class="profile-panel__body">
+
+    <!-- ── Profile section ── -->
+    <div id="pf-section">
+      <p class="pf-username" id="pf-username"></p>
+      <div class="pf-field">
+        <span class="pf-label">Email</span>
+        <span class="pf-value" id="pf-email"></span>
+      </div>
+      <div class="pf-field">
+        <span class="pf-label">Member since</span>
+        <span class="pf-value" id="pf-since"></span>
+      </div>
+      <div class="pf-field">
+        <span class="pf-label">Sensitivity</span>
+        <span class="pf-value" id="pf-sensitivity"></span>
+      </div>
+      <button class="pf-signout" id="pf-signout">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>
+        </svg>
+        Sign out
+      </button>
+    </div>
+
+    <!-- ── Oracle section (owner only, hidden by default) ── -->
+    <div id="oracle-section" style="display:none;">
+
+      <div class="oracle-divider">
+        <span class="oracle-divider__label">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="vertical-align:middle;margin-right:.3em;">
+            <ellipse cx="12" cy="12" rx="10" ry="4"/>
+            <path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"/>
+          </svg>
+          Oracle
+        </span>
+      </div>
+
+      <div id="oracle-loading" class="oracle-loading">
+        <div class="oracle-spinner"></div>
+        <span>Loading oracle data…</span>
+      </div>
+
+      <div id="oracle-content" style="display:none;">
+        <div class="oracle-tabs" id="oracle-tabs"></div>
+        <div id="oracle-panes"></div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
 
 </body>
 </html>

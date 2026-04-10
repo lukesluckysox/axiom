@@ -5,6 +5,7 @@ import { authRouter } from './routes/auth';
 import { epistemicRouter } from './routes/epistemic';
 import { loopRouter } from './routes/loop';
 import { cockpitRouter } from './routes/cockpit';
+import { oracleRouter } from './routes/oracle';
 
 // Initialise DB (creates tables on first run)
 import './db';
@@ -24,6 +25,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/epistemic', epistemicRouter);
 app.use('/api/loop', loopRouter);
 app.use('/api/cockpit', cockpitRouter);
+app.use('/api/oracle', oracleRouter);
 
 app.get('/api/health', (_, res) => {
   const volPath = process.env.RAILWAY_VOLUME_MOUNT_PATH;
