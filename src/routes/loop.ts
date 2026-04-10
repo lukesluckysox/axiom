@@ -112,6 +112,16 @@ router.get('/pulse', (req: Request, res: Response) => {
 
   const userId = String(user.userId);
 
+  // Client sends its IANA timezone via header; fall back to UTC
+  const tz = (req.headers['x-timezone'] as string) || 'UTC';
+
+  // Format a Date to "YYYY-MM-DD" in the user's local timezone
+  function toLocalDateStr(date: Date): string {
+    // Intl gives locale-independent ISO-like parts
+    const parts = new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' }).format(date);
+    return parts; // en-CA format is YYYY-MM-DD
+  }
+
   try {
     // Seven-day window
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
@@ -131,17 +141,18 @@ router.get('/pulse', (req: Request, res: Response) => {
       if (r.sourceApp in byApp) byApp[r.sourceApp]++;
     }
 
-    // byDay counts — build a 7-entry array for the last 7 days (oldest first)
+    // byDay counts — group each event by its local date in the user's timezone
     const dayMap: Record<string, number> = {};
     for (const r of rows) {
-      const day = r.createdAt.slice(0, 10); // "YYYY-MM-DD"
+      const day = toLocalDateStr(new Date(r.createdAt));
       dayMap[day] = (dayMap[day] ?? 0) + 1;
     }
 
+    // Build a 7-entry array for the last 7 days (oldest first), using local dates
     const byDay: { date: string; count: number }[] = [];
     for (let i = 6; i >= 0; i--) {
       const d = new Date(Date.now() - i * 24 * 60 * 60 * 1000);
-      const dateStr = d.toISOString().slice(0, 10);
+      const dateStr = toLocalDateStr(d);
       byDay.push({ date: dateStr, count: dayMap[dateStr] ?? 0 });
     }
 

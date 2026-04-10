@@ -3038,7 +3038,7 @@ async function setSensitivity(val) {
 
   async function loadPulse() {
     try {
-      var res = await fetch('/api/loop/pulse', { credentials: 'same-origin' });
+      var res = await fetch('/api/loop/pulse', { credentials: 'same-origin', headers: { 'X-Timezone': Intl.DateTimeFormat().resolvedOptions().timeZone } });
       if (!res.ok) return;
       var data = await res.json();
 
