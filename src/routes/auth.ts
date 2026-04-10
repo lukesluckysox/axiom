@@ -21,30 +21,30 @@ const PARALLAX_API_URL     = process.env.PARALLAX_API_URL || 'https://parallaxap
 const LIMINAL_API_URL      = process.env.LIMINAL_API_URL  || 'https://liminal-app.up.railway.app';
 const LUMEN_INTERNAL_TOKEN = process.env.LUMEN_INTERNAL_TOKEN || '';
 
-function linkSubApps(userId: number, username: string, email: string): void {
+function linkSubApps(userId: number, username: string, email: string, plan: string): void {
   if (!LUMEN_INTERNAL_TOKEN) return;
 
-  // Fire-and-forget: link Parallax
+  // Fire-and-forget: link Parallax (includes plan for pro-status sync)
   fetch(`${PARALLAX_API_URL}/api/internal/link-user`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'x-lumen-internal-token': LUMEN_INTERNAL_TOKEN,
     },
-    body: JSON.stringify({ username, lumenUserId: String(userId) }),
+    body: JSON.stringify({ username, lumenUserId: String(userId), plan }),
     signal: AbortSignal.timeout(5000),
   })
     .then(r => { if (!r.ok) console.error('[sso-link] Parallax link failed:', r.status); })
     .catch(e => console.error('[sso-link] Parallax link error:', e.message));
 
-  // Fire-and-forget: link Liminal (endpoint may not exist yet — fails silently)
+  // Fire-and-forget: link Liminal (includes plan for permission sync)
   fetch(`${LIMINAL_API_URL}/api/internal/link-user`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'x-lumen-internal-token': LUMEN_INTERNAL_TOKEN,
     },
-    body: JSON.stringify({ email, username, lumenUserId: String(userId) }),
+    body: JSON.stringify({ email, username, lumenUserId: String(userId), plan }),
     signal: AbortSignal.timeout(5000),
   })
     .then(r => { if (!r.ok) console.error('[sso-link] Liminal link failed:', r.status); })
@@ -104,8 +104,8 @@ router.post('/register', async (req: Request, res: Response) => {
     const token = signToken(result.id, result.username);
     res.cookie(COOKIE_NAME, token, cookieOpts());
 
-    // Link sub-apps (fire-and-forget)
-    linkSubApps(result.id, result.username, mail);
+    // Link sub-apps (fire-and-forget) — new users get 'free' plan
+    linkSubApps(result.id, result.username, mail, 'free');
 
     return res.status(201).json({ username: result.username });
   } catch (err) {
@@ -143,8 +143,9 @@ router.post('/login', async (req: Request, res: Response) => {
     const token = signToken(user.id, user.username);
     res.cookie(COOKIE_NAME, token, cookieOpts());
 
-    // Link sub-apps (fire-and-forget)
-    linkSubApps(user.id, user.username, user.email);
+    // Link sub-apps (fire-and-forget) — pass current plan
+    const userPlan = (user as any).plan || 'free';
+    linkSubApps(user.id, user.username, user.email, userPlan);
 
     return res.json({ username: user.username });
   } catch (err) {
@@ -188,7 +189,7 @@ router.get('/sso-token', (req: Request, res: Response) => {
 
 // ─── GET /api/auth/profile ───────────────────────────────────────────────────
 
-const OWNER_USERNAME = 'lukesluckysox';
+const ORACLE_EMAIL = (process.env.ORACLE_EMAIL || '').toLowerCase().trim();
 
 router.get('/profile', (req: Request, res: Response) => {
   const token = (req.cookies as Record<string, string>)?.[COOKIE_NAME];
@@ -197,7 +198,7 @@ router.get('/profile', (req: Request, res: Response) => {
   try {
     const payload = jwt.verify(token, JWT_SECRET) as { userId: number; username: string };
     const user = db
-      .select({ username: users.username, email: users.email, sensitivity: users.sensitivity, createdAt: users.createdAt })
+      .select({ username: users.username, email: users.email, sensitivity: users.sensitivity, plan: users.plan, role: users.role, createdAt: users.createdAt })
       .from(users)
       .where(eq(users.id, payload.userId))
       .get();
@@ -207,12 +208,16 @@ router.get('/profile', (req: Request, res: Response) => {
       return res.status(401).json({ error: 'User not found.' });
     }
 
+    // Oracle access: role must be 'oracle' and email must match ORACLE_EMAIL env var
+    const isOwner = user.role === 'oracle' && (!ORACLE_EMAIL || user.email === ORACLE_EMAIL);
+
     return res.json({
       username:    user.username,
       email:       user.email,
       sensitivity: user.sensitivity ?? 'medium',
+      plan:        user.plan ?? 'free',
       createdAt:   user.createdAt,
-      isOwner:     user.username === OWNER_USERNAME,
+      isOwner,
     });
   } catch {
     res.clearCookie(COOKIE_NAME);

@@ -21,6 +21,8 @@ export const users = sqliteTable('users', {
   email:        text('email').notNull().unique(),
   passwordHash: text('password_hash').notNull(),
   sensitivity:  text('sensitivity').default('medium'),
+  plan:         text('plan').default('free'),       // 'free' | 'pro' | 'founder'
+  role:         text('role').default('user'),        // 'user' | 'oracle'
   createdAt:    text('created_at').notNull(),
 });
 
@@ -228,6 +230,19 @@ runEpistemicMigrations();
 try {
   sqlite.exec(`ALTER TABLE users ADD COLUMN sensitivity TEXT DEFAULT 'medium'`);
 } catch { /* column already exists */ }
+
+try { sqlite.exec(`ALTER TABLE users ADD COLUMN plan TEXT DEFAULT 'free'`); } catch { /* already exists */ }
+try { sqlite.exec(`ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'user'`); } catch { /* already exists */ }
+
+// Seed oracle role from ORACLE_EMAIL env var (idempotent)
+const oracleEmail = process.env.ORACLE_EMAIL;
+if (oracleEmail) {
+  const normalized = oracleEmail.toLowerCase().trim();
+  const result = sqlite.prepare(
+    `UPDATE users SET role = 'oracle', plan = 'founder' WHERE email = ? AND role != 'oracle'`
+  ).run(normalized);
+  if (result.changes > 0) console.log(`[db] Promoted ${normalized} to oracle/founder`);
+}
 
 try { sqlite.exec("ALTER TABLE epistemic_candidates ADD COLUMN convergence_group_id TEXT"); } catch (_e) {}
 

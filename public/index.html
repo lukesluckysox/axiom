@@ -1604,6 +1604,27 @@
       font-size: var(--text-xs); color: var(--muted); padding: var(--sp-4) 0;
       font-style: italic;
     }
+    /* Plan toggle + delete controls */
+    .oracle-plan-btn {
+      background: none; border: 1px solid var(--border);
+      border-radius: var(--r-sm); cursor: pointer;
+      font-size: 10px; padding: 2px 7px; color: var(--muted);
+      font-family: var(--font-body); transition: all var(--t);
+      line-height: 1.4;
+    }
+    .oracle-plan-btn:hover { color: var(--text); border-color: var(--border-md); }
+    .oracle-plan-btn--active {
+      color: var(--gold); border-color: var(--gold); background: rgba(212,175,55,.08);
+    }
+    .oracle-plan-group { display: inline-flex; gap: 2px; }
+    .oracle-del-btn {
+      background: none; border: 1px solid rgba(239,68,68,.25);
+      border-radius: var(--r-sm); cursor: pointer;
+      font-size: 10px; padding: 2px 6px; color: rgba(239,68,68,.6);
+      font-family: var(--font-body); transition: all var(--t);
+    }
+    .oracle-del-btn:hover { color: #ef4444; border-color: #ef4444; background: rgba(239,68,68,.08); }
+    .oracle-actions { display: flex; align-items: center; gap: var(--sp-2); white-space: nowrap; }
     .oracle-loading {
       display: flex; align-items: center; gap: var(--sp-2);
       font-size: var(--text-xs); color: var(--muted); padding: var(--sp-2) 0;
@@ -3795,8 +3816,6 @@ if ('serviceWorker' in navigator) {
     var pane = document.getElementById('oracle-pane-' + app);
     if (!pane || !oracleData) return;
 
-    // Each tab shows that app's registered users; sub-apps may return []
-    // if /api/internal/users isn't implemented yet — fall back gracefully
     var rows = oracleData[app] || [];
 
     if (rows.length === 0) {
@@ -3813,29 +3832,87 @@ if ('serviceWorker' in navigator) {
 
     var countHtml = '<p class="oracle-count"><strong>' + rows.length + '</strong> registered user' + (rows.length !== 1 ? 's' : '') + '</p>';
 
-    // Lumen has email; sub-apps may only have username
+    var isLumen = (app === 'lumen');
     var hasEmail = rows.some(function(u) { return u.email; });
 
     var tableHtml = '<table class="oracle-table"><thead><tr>';
-    tableHtml += '<th style="width:' + (hasEmail ? '35%' : '60%') + '">Username</th>';
-    if (hasEmail) tableHtml += '<th style="width:42%">Email</th>';
-    tableHtml += '<th style="width:23%">Joined</th>';
+    tableHtml += '<th>Username</th>';
+    if (hasEmail) tableHtml += '<th>Email</th>';
+    tableHtml += '<th>Joined</th>';
+    if (isLumen) tableHtml += '<th>Plan</th><th></th>';
     tableHtml += '</tr></thead><tbody>';
 
     rows.forEach(function (u) {
       var joined = formatDate(u.createdAt || u.created_at);
       var shortJoined = joined.replace(/^(\w+ \d+), (\d+)$/, function(_, md, y) { return md + ' \'' + y.slice(2); });
       var uname = u.username || u.name || '—';
+      var isOracle = u.role === 'oracle';
       tableHtml += '<tr>';
-      tableHtml += '<td class="trunc" title="' + escHtml(uname) + '">' + escHtml(uname) + '</td>';
+      tableHtml += '<td class="trunc" title="' + escHtml(uname) + '">' + escHtml(uname) + (isOracle ? ' <span style="color:var(--gold);font-size:9px">◆</span>' : '') + '</td>';
       if (hasEmail) tableHtml += '<td class="trunc muted" title="' + escHtml(u.email || '') + '">' + escHtml(u.email || '—') + '</td>';
       tableHtml += '<td class="muted" style="font-size:10px;white-space:nowrap">' + shortJoined + '</td>';
+
+      if (isLumen) {
+        var currentPlan = u.plan || 'free';
+        var planHtml = '<td class="oracle-actions">';
+        planHtml += '<span class="oracle-plan-group">';
+        ['free', 'pro', 'founder'].forEach(function(p) {
+          planHtml += '<button class="oracle-plan-btn' + (currentPlan === p ? ' oracle-plan-btn--active' : '') + '"';
+          planHtml += ' data-user-id="' + u.id + '" data-plan="' + p + '"';
+          planHtml += ' onclick="oracleSetPlan(' + u.id + ',\'' + p + '\')">' + p + '</button>';
+        });
+        planHtml += '</span></td>';
+
+        var delHtml = '<td>';
+        if (!isOracle) {
+          delHtml += '<button class="oracle-del-btn" onclick="oracleDeleteUser(' + u.id + ',\'' + escHtml(uname) + '\')" title="Delete user">×</button>';
+        }
+        delHtml += '</td>';
+        tableHtml += planHtml + delHtml;
+      }
+
       tableHtml += '</tr>';
     });
 
     tableHtml += '</tbody></table>';
     pane.innerHTML = countHtml + tableHtml;
   }
+
+  // ── Oracle actions: plan toggle + delete ──
+  window.oracleSetPlan = async function(userId, plan) {
+    try {
+      var res = await fetch('/api/oracle/users/' + userId + '/plan', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ plan: plan }),
+      });
+      if (!res.ok) { var e = await res.json(); alert(e.error || 'Failed'); return; }
+      // Update local data and re-render
+      if (oracleData && oracleData.lumen) {
+        oracleData.lumen.forEach(function(u) {
+          if (u.id === userId) u.plan = plan;
+        });
+      }
+      renderOraclePane('lumen');
+    } catch (err) { alert('Error: ' + err.message); }
+  };
+
+  window.oracleDeleteUser = async function(userId, username) {
+    if (!confirm('Delete user "' + username + '" from Lumen and all sub-apps? This cannot be undone.')) return;
+    try {
+      var res = await fetch('/api/oracle/users/' + userId, {
+        method: 'DELETE',
+        credentials: 'same-origin',
+      });
+      if (!res.ok) { var e = await res.json(); alert(e.error || 'Failed'); return; }
+      // Remove from local data and re-render
+      if (oracleData && oracleData.lumen) {
+        oracleData.lumen = oracleData.lumen.filter(function(u) { return u.id !== userId; });
+      }
+      renderOraclePane('lumen');
+    } catch (err) { alert('Error: ' + err.message); }
+  };
 
   function escHtml(str) {
     return String(str)
