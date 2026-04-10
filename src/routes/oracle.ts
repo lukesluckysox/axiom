@@ -198,6 +198,40 @@ router.delete('/users/:id', async (req: Request, res: Response) => {
   }
 });
 
+// ─── DELETE /api/oracle/app/:app/user ─────────────────────────────────────
+// Oracle: delete a user from a SINGLE sub-app only (not from Lumen)
+
+router.delete('/app/:app/user', async (req: Request, res: Response) => {
+  const auth = requireOracle(req, res);
+  if (!auth) return;
+
+  const appKey = req.params.app;
+  const subApp = SUB_APPS.find(a => a.key === appKey);
+  if (!subApp) return res.status(400).json({ error: 'Unknown app: ' + appKey });
+
+  const { username, email } = req.body || {};
+  if (!username && !email) return res.status(400).json({ error: 'username or email required.' });
+
+  if (!LUMEN_INTERNAL_TOKEN) return res.status(500).json({ error: 'Internal token not configured.' });
+
+  try {
+    const r = await fetch(`${subApp.url}/api/internal/delete-user`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-lumen-internal-token': LUMEN_INTERNAL_TOKEN },
+      body: JSON.stringify({ username, email }),
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!r.ok) {
+      const body = await r.json().catch(() => ({})) as any;
+      return res.status(r.status).json({ error: body.error || `${subApp.label} returned ${r.status}` });
+    }
+    return res.json({ ok: true });
+  } catch (err: any) {
+    console.error(`[oracle/app-delete] ${appKey}:`, err.message);
+    return res.status(500).json({ error: 'Failed to delete user from ' + subApp.label });
+  }
+});
+
 // ─── Sub-app sync helpers ──────────────────────────────────────────────────
 
 function syncPlanToSubApps(username: string, email: string, plan: string): void {

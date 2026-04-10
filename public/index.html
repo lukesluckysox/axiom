@@ -3823,37 +3823,51 @@ if ('serviceWorker' in navigator) {
     tableHtml += '<th>Username</th>';
     if (hasEmail) tableHtml += '<th>Email</th>';
     tableHtml += '<th>Joined</th>';
-    if (isLumen) tableHtml += '<th>Plan</th><th></th>';
+    tableHtml += '<th>Plan</th><th></th>';
     tableHtml += '</tr></thead><tbody>';
 
     rows.forEach(function (u) {
       var joined = formatDate(u.createdAt || u.created_at);
       var shortJoined = joined.replace(/^(\w+ \d+), (\d+)$/, function(_, md, y) { return md + ' \'' + y.slice(2); });
       var uname = u.username || u.name || '—';
+      var uemail = u.email || '';
       var isOracle = u.role === 'oracle';
       tableHtml += '<tr>';
-      tableHtml += '<td class="trunc" title="' + escHtml(uname) + '">' + escHtml(uname) + (isOracle ? ' <span style="color:var(--gold);font-size:9px">◆</span>' : '') + '</td>';
-      if (hasEmail) tableHtml += '<td class="trunc muted" title="' + escHtml(u.email || '') + '">' + escHtml(u.email || '—') + '</td>';
+      tableHtml += '<td title="' + escHtml(uname) + '">' + escHtml(uname) + (isOracle ? ' <span style="color:var(--gold);font-size:9px">◆</span>' : '') + '</td>';
+      if (hasEmail) tableHtml += '<td class="muted" title="' + escHtml(uemail) + '">' + escHtml(uemail || '—') + '</td>';
       tableHtml += '<td class="muted" style="font-size:10px;white-space:nowrap">' + shortJoined + '</td>';
 
+      // Plan column — show on all tabs
+      var currentPlan = u.plan || 'free';
+      var planHtml = '<td class="oracle-actions">';
       if (isLumen) {
-        var currentPlan = u.plan || 'free';
-        var planHtml = '<td class="oracle-actions">';
+        // Lumen tab: editable plan toggle
         planHtml += '<span class="oracle-plan-group">';
         ['free', 'pro', 'founder'].forEach(function(p) {
           planHtml += '<button class="oracle-plan-btn' + (currentPlan === p ? ' oracle-plan-btn--active' : '') + '"';
           planHtml += ' data-user-id="' + u.id + '" data-plan="' + p + '"';
           planHtml += ' onclick="oracleSetPlan(' + u.id + ',\'' + p + '\')">' + p + '</button>';
         });
-        planHtml += '</span></td>';
-
-        var delHtml = '<td>';
-        if (!isOracle) {
-          delHtml += '<button class="oracle-del-btn" onclick="oracleDeleteUser(' + u.id + ',\'' + escHtml(uname) + '\')" title="Delete user">×</button>';
-        }
-        delHtml += '</td>';
-        tableHtml += planHtml + delHtml;
+        planHtml += '</span>';
+      } else {
+        // Sub-app tab: read-only plan badge
+        planHtml += '<span class="oracle-plan-btn oracle-plan-btn--active" style="cursor:default">' + currentPlan + '</span>';
       }
+      planHtml += '</td>';
+
+      // Delete column — show on all tabs
+      var delHtml = '<td>';
+      if (!isOracle) {
+        if (isLumen) {
+          // Lumen delete = cascade across all apps
+          delHtml += '<button class="oracle-del-btn" onclick="oracleDeleteUser(' + (u.id || 0) + ',\'' + escHtml(uname) + '\')" title="Delete from Lumen + all sub-apps">×</button>';
+        } else {
+          // Sub-app delete = remove from this app only
+          delHtml += '<button class="oracle-del-btn" onclick="oracleDeleteAppUser(\'' + app + '\',\'' + escHtml(uname) + '\',\'' + escHtml(uemail) + '\')" title="Delete from ' + app + ' only">×</button>';
+        }
+      }
+      delHtml += '</td>';
+      tableHtml += planHtml + delHtml;
 
       tableHtml += '</tr>';
     });
@@ -3883,18 +3897,39 @@ if ('serviceWorker' in navigator) {
   };
 
   window.oracleDeleteUser = async function(userId, username) {
-    if (!confirm('Delete user "' + username + '" from Lumen and all sub-apps? This cannot be undone.')) return;
+    if (!confirm('Delete user "' + username + '" from Lumen AND all sub-apps? This cannot be undone.')) return;
     try {
       var res = await fetch('/api/oracle/users/' + userId, {
         method: 'DELETE',
         credentials: 'same-origin',
       });
       if (!res.ok) { var e = await res.json(); alert(e.error || 'Failed'); return; }
-      // Remove from local data and re-render
-      if (oracleData && oracleData.lumen) {
-        oracleData.lumen = oracleData.lumen.filter(function(u) { return u.id !== userId; });
+      // Remove from local data and re-render all tabs
+      if (oracleData) {
+        if (oracleData.lumen) oracleData.lumen = oracleData.lumen.filter(function(u) { return u.id !== userId; });
+        ['liminal','parallax','praxis','axiom'].forEach(function(app) {
+          if (oracleData[app]) oracleData[app] = oracleData[app].filter(function(u) { return u.username !== username; });
+        });
       }
-      renderOraclePane('lumen');
+      renderOraclePane(currentOracleTab);
+    } catch (err) { alert('Error: ' + err.message); }
+  };
+
+  window.oracleDeleteAppUser = async function(app, username, email) {
+    if (!confirm('Delete user "' + username + '" from ' + app + ' only?')) return;
+    try {
+      var res = await fetch('/api/oracle/app/' + app + '/user', {
+        method: 'DELETE',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: username, email: email }),
+      });
+      if (!res.ok) { var e = await res.json(); alert(e.error || 'Failed'); return; }
+      // Remove from local data for this app and re-render
+      if (oracleData && oracleData[app]) {
+        oracleData[app] = oracleData[app].filter(function(u) { return (u.username || u.name) !== username; });
+      }
+      renderOraclePane(app);
     } catch (err) { alert('Error: ' + err.message); }
   };
 
@@ -3981,7 +4016,7 @@ if ('serviceWorker' in navigator) {
 </script>
 
 <!-- ══ Profile Slide-Over Panel ══ -->
-<div class="profile-backdrop" id="profile-backdrop" aria-hidden="true"></div>
+<div class="profile-backdrop" id="profile-backdrop" aria-hidden="true" onclick="document.getElementById('profile-backdrop').classList.remove('profile-backdrop--open');document.getElementById('profile-panel').classList.remove('profile-panel--open');document.body.style.overflow='';"></div>
 <div class="profile-panel" id="profile-panel" role="dialog" aria-modal="true" aria-label="Profile">
 
   <div class="profile-panel__head">
@@ -3990,7 +4025,7 @@ if ('serviceWorker' in navigator) {
       <button id="profile-expand" aria-label="Expand panel" style="background:none;border:1px solid var(--border-md);border-radius:var(--r-sm);cursor:pointer;padding:0.25rem 0.5rem;color:var(--muted);font-family:Satoshi,sans-serif;font-size:10px;letter-spacing:.08em;text-transform:uppercase;transition:color 180ms,border-color 180ms;" onmouseover="this.style.color='var(--text)';this.style.borderColor='var(--text)'" onmouseout="this.style.color='var(--muted)';this.style.borderColor='var(--border-md)'" onclick="var p=document.getElementById('profile-panel');p.classList.toggle('profile-panel--wide');this.textContent=p.classList.contains('profile-panel--wide')?'Collapse':'Expand';">
         Expand
       </button>
-      <button class="profile-panel__close" id="profile-close" aria-label="Close profile">
+      <button class="profile-panel__close" id="profile-close" aria-label="Close profile" onclick="document.getElementById('profile-backdrop').classList.remove('profile-backdrop--open');document.getElementById('profile-panel').classList.remove('profile-panel--open');document.body.style.overflow='';">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
           <path d="M18 6L6 18M6 6l12 12"/>
         </svg>
