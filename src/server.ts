@@ -18,7 +18,17 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
 // ─── Static assets ───────────────────────────────────────────────────────────
-app.use(express.static(path.join(__dirname, '..', 'public')));
+// index.html must always revalidate so users never see stale SPA shells.
+// Other static assets (CSS, JS, images) can cache normally.
+app.use(express.static(path.join(__dirname, '..', 'public'), {
+  setHeaders(res, filePath) {
+    if (filePath.endsWith('index.html') || filePath.endsWith('.html')) {
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+    }
+  },
+}));
 
 // ─── API ─────────────────────────────────────────────────────────────────────
 app.use('/api/auth', authRouter);
@@ -48,6 +58,9 @@ app.get('/api/health', (_, res) => {
 
 // ─── Fallback — serve the shell for all non-API routes ───────────────────────
 app.get('*', (req, res) => {
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
   res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
 });
 
