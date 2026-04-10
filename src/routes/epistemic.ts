@@ -39,18 +39,22 @@ const now = () => new Date().toISOString();
 // Accepts JWT cookie auth OR x-lumen-internal-token header for server-to-server
 
 interface AuthPayload {
-  userId: number | string;
+  userId: number | string; // number from JWT cookie, string from internal calls
   username: string;
 }
 
 function authenticate(req: Request, res: Response): AuthPayload | null {
   // Check internal token for server-to-server calls
   const internalToken = req.headers['x-lumen-internal-token'] as string | undefined;
-  const expectedToken = process.env.LUMEN_INTERNAL_TOKEN || JWT_SECRET;
-  if (internalToken && internalToken === expectedToken) {
-    // For internal calls, userId may come from body or query
-    const userId = (req.body?.userId || req.query?.userId || 'system') as string;
-    return { userId, username: 'internal' };
+  if (internalToken) {
+    const expectedToken = process.env.LUMEN_INTERNAL_TOKEN;
+    if (!expectedToken) return null; // LUMEN_INTERNAL_TOKEN not configured — reject
+    if (internalToken === expectedToken) {
+      // For internal calls, userId may come from body or query
+      const userId = (req.body?.userId || req.query?.userId || 'system') as string;
+      return { userId, username: 'internal' };
+    }
+    return null; // token provided but wrong
   }
 
   // Check JWT cookie
@@ -75,8 +79,13 @@ function requireAuth(req: Request, res: Response): AuthPayload | null {
 }
 
 function requireInternalToken(req: Request, res: Response, next: () => void): void {
+  const expectedToken = process.env.LUMEN_INTERNAL_TOKEN;
+  if (!expectedToken) {
+    // Fail loudly: internal token not configured on this instance
+    res.status(503).json({ error: 'Internal token not configured.' });
+    return;
+  }
   const token = (req.headers as Record<string, string>)['x-lumen-internal-token'];
-  const expectedToken = process.env.LUMEN_INTERNAL_TOKEN || JWT_SECRET;
   if (!token || token !== expectedToken) {
     res.status(401).json({ error: 'Unauthorized' });
     return;
@@ -163,6 +172,7 @@ router.post('/events', async (req: Request, res: Response) => {
     await processEvent(event);
 
     // Fire-and-forget: push any newly queued candidates to Axiomtool / Praxis
+    // cross-app: always string
     flushEpistemicQueue(String(event.userId)).catch((e: unknown) => {
       console.error('[epistemic/events] push flush error:', e);
     });
@@ -603,9 +613,12 @@ router.post('/sensitivity/:userId', (req: Request, res: Response) => {
 // ─── POST /push/:userId — flush epistemic queue to Axiomtool + Praxis ────────
 router.post('/push/:userId', async (req: Request, res: Response) => {
   const { userId } = req.params;
-  const token = (req.headers as Record<string, string>)['x-lumen-internal-token'];
   const expectedToken = process.env.LUMEN_INTERNAL_TOKEN;
-  if (!expectedToken || token !== expectedToken) {
+  if (!expectedToken) {
+    return res.status(503).json({ error: 'Internal token not configured.' });
+  }
+  const token = (req.headers as Record<string, string>)['x-lumen-internal-token'];
+  if (!token || token !== expectedToken) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
   try {

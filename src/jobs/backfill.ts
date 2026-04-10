@@ -269,9 +269,9 @@ export async function backfillAxiomSeededState(
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-lumen-internal-token': process.env.LUMEN_INTERNAL_TOKEN || process.env.JWT_SECRET || '',
+          'x-lumen-internal-token': process.env.LUMEN_INTERNAL_TOKEN || '',
         },
-        body: JSON.stringify({ userId }),
+        body: JSON.stringify({ userId: String(userId) }), // cross-app: always string
       });
       if (resp.ok) {
         const data = await resp.json() as { statements?: AxiomSeedStatement[] };

@@ -10,7 +10,10 @@ const LIMINAL_API_URL = process.env.LIMINAL_API_URL || 'https://liminal-app.up.r
 
 const AXIOM_API_URL = process.env.AXIOM_API_URL || 'https://axiomtool-production.up.railway.app';
 const PRAXIS_API_URL = process.env.PRAXIS_API_URL || 'https://praxis-app.up.railway.app';
-const LUMEN_INTERNAL_TOKEN = process.env.LUMEN_INTERNAL_TOKEN || '';
+const LUMEN_INTERNAL_TOKEN = process.env.LUMEN_INTERNAL_TOKEN ?? '';
+if (!process.env.LUMEN_INTERNAL_TOKEN) {
+  console.warn('[epistemicPush] LUMEN_INTERNAL_TOKEN not set — all cross-app pushes will be skipped.');
+}
 
 function confidenceToText(score: number): string {
   if (score >= 0.85) return 'high';
@@ -107,7 +110,7 @@ export async function pushCandidateToAxiomtool(candidate: typeof epistemicCandid
       praxisCount: 0,
       inputDescriptions: JSON.stringify([candidate.summary]),
       source: 'lumen_push',
-      userId: candidate.userId,
+      userId: String(candidate.userId), // cross-app: always string
     });
 
     const res = await fetch(`${AXIOM_API_URL}/api/internal/from-lumen`, {
@@ -141,7 +144,7 @@ export async function pushCandidateToPraxis(candidate: typeof epistemicCandidate
       observation: '',
       meaningExtraction: '',
       tags: '[]',
-      userId: candidate.userId,
+      userId: String(candidate.userId), // cross-app: always string
     });
     const res = await fetch(`${PRAXIS_API_URL}/api/internal/from-lumen`, {
       method: 'POST',
@@ -207,7 +210,8 @@ export async function flushEpistemicQueue(userId: string): Promise<{ pushed: num
     const pairs = findConvergencePairs(liminalCandidates, parallaxCandidates);
 
     for (const pair of pairs) {
-      const payload = buildConvergencePayload(pair.liminal, pair.parallax, pair.themes, userId);
+      // cross-app: always string
+      const payload = buildConvergencePayload(pair.liminal, pair.parallax, pair.themes, String(userId));
       try {
         const res = await fetch(`${AXIOM_API_URL}/api/internal/from-lumen`, {
           method: 'POST',

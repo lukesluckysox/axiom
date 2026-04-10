@@ -226,15 +226,89 @@ function runEpistemicMigrations() {
 
 runEpistemicMigrations();
 
-// ─── User Column Migrations ───────────────────────────────────────────────────
-try {
-  sqlite.exec(`ALTER TABLE users ADD COLUMN sensitivity TEXT DEFAULT 'medium'`);
-} catch { /* column already exists */ }
+// ─── Tracked Migrations ──────────────────────────────────────────────────────
+// Each migration runs once, tracked by string ID in the _migrations table.
+// Replaces the old try/catch ALTER TABLE pattern.
 
-try { sqlite.exec(`ALTER TABLE users ADD COLUMN plan TEXT DEFAULT 'aspirant'`); } catch { /* already exists */ }
-try { sqlite.exec(`ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'user'`); } catch { /* already exists */ }
+sqlite.exec(`
+  CREATE TABLE IF NOT EXISTS _migrations (
+    id     TEXT PRIMARY KEY,
+    ran_at TEXT NOT NULL
+  )
+`);
 
-// Seed oracle role from ORACLE_EMAIL env var (idempotent)
+interface Migration {
+  id: string;
+  run: () => void;
+}
+
+const migrations: Migration[] = [
+  {
+    id: 'add_users_sensitivity',
+    run: () => sqlite.exec(`ALTER TABLE users ADD COLUMN sensitivity TEXT DEFAULT 'medium'`),
+  },
+  {
+    id: 'add_users_plan',
+    run: () => sqlite.exec(`ALTER TABLE users ADD COLUMN plan TEXT DEFAULT 'aspirant'`),
+  },
+  {
+    id: 'add_users_role',
+    run: () => sqlite.exec(`ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'user'`),
+  },
+  {
+    id: 'add_candidates_convergence_group_id',
+    run: () => sqlite.exec(`ALTER TABLE epistemic_candidates ADD COLUMN convergence_group_id TEXT`),
+  },
+  {
+    id: 'migrate_legacy_plan_names',
+    run: () => {
+      sqlite.exec(`UPDATE users SET plan = 'aspirant' WHERE plan = 'free'`);
+      sqlite.exec(`UPDATE users SET plan = 'fellow' WHERE plan = 'pro'`);
+      // 'founder' stays as-is (oracle/founder tier)
+    },
+  },
+  {
+    id: 'flush_pre_voice_fix_prompts_2026_04_08',
+    run: () => {
+      const result = sqlite.prepare(
+        `UPDATE prompt_queue SET status = 'flushed_pre_voice_fix'
+         WHERE status = 'open' AND created_at < '2026-04-09T00:00:00'`
+      ).run();
+      if (result.changes > 0) console.log(`[db/migration] Flushed ${result.changes} pre-fix prompt_queue entries`);
+    },
+  },
+];
+
+function runMigrations() {
+  const ran = new Set(
+    (sqlite.prepare('SELECT id FROM _migrations').all() as { id: string }[]).map(r => r.id)
+  );
+  const insert = sqlite.prepare('INSERT INTO _migrations (id, ran_at) VALUES (?, ?)');
+
+  for (const m of migrations) {
+    if (ran.has(m.id)) continue;
+    try {
+      m.run();
+      insert.run(m.id, new Date().toISOString());
+      console.log(`[db/migration] ✓ ${m.id}`);
+    } catch (e: unknown) {
+      // ALTER TABLE "column already exists" is non-fatal — mark as run
+      const msg = e instanceof Error ? e.message : String(e);
+      if (msg.includes('duplicate column') || msg.includes('already exists')) {
+        insert.run(m.id, new Date().toISOString());
+        console.log(`[db/migration] ✓ ${m.id} (already applied)`);
+      } else {
+        console.error(`[db/migration] ✗ ${m.id}:`, e);
+      }
+    }
+  }
+}
+
+runMigrations();
+
+// ─── Idempotent Per-Startup Seeds ────────────────────────────────────────────
+// (Not tracked as migrations — these re-evaluate on every boot based on env vars)
+
 const oracleEmail = process.env.ORACLE_EMAIL;
 if (oracleEmail) {
   const normalized = oracleEmail.toLowerCase().trim();
@@ -243,24 +317,5 @@ if (oracleEmail) {
   ).run(normalized);
   if (result.changes > 0) console.log(`[db] Promoted ${normalized} to oracle/founder`);
 }
-
-try { sqlite.exec("ALTER TABLE epistemic_candidates ADD COLUMN convergence_group_id TEXT"); } catch (_e) {}
-
-// Migrate legacy plan names → aspirant/fellow
-try {
-  sqlite.exec(`UPDATE users SET plan = 'aspirant' WHERE plan = 'free'`);
-  sqlite.exec(`UPDATE users SET plan = 'fellow' WHERE plan = 'pro'`);
-  // 'founder' stays as-is (oracle/founder tier)
-} catch (e) { console.error('[db] plan migration error (non-fatal):', e); }
-
-// One-time flush: prompt_queue entries created before voice-transform fix (2026-04-08)
-// are in the wrong grammatical person. Close them so only new correctly-voiced prompts show.
-try {
-  const result = sqlite.prepare(
-    `UPDATE prompt_queue SET status = 'flushed_pre_voice_fix'
-     WHERE status = 'open' AND created_at < '2026-04-09T00:00:00'`
-  ).run();
-  if (result.changes > 0) console.log(`[db] Flushed ${result.changes} pre-fix prompt_queue entries`);
-} catch (e) { console.error('[db] prompt_queue flush error (non-fatal):', e); }
 
 console.log(`[db] Connected: ${dbPath}`);

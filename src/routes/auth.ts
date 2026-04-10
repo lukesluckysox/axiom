@@ -19,7 +19,10 @@ const COOKIE_MAXAGE = 30 * 24 * 60 * 60 * 1000; // 30 days
 
 const PARALLAX_API_URL     = process.env.PARALLAX_API_URL || 'https://parallaxapp.up.railway.app';
 const LIMINAL_API_URL      = process.env.LIMINAL_API_URL  || 'https://liminal-app.up.railway.app';
-const LUMEN_INTERNAL_TOKEN = process.env.LUMEN_INTERNAL_TOKEN || '';
+const LUMEN_INTERNAL_TOKEN = process.env.LUMEN_INTERNAL_TOKEN ?? '';
+if (!process.env.LUMEN_INTERNAL_TOKEN) {
+  console.warn('[auth] LUMEN_INTERNAL_TOKEN not set — sub-app linking will be disabled.');
+}
 
 function linkSubApps(userId: number, username: string, email: string, plan: string): void {
   if (!LUMEN_INTERNAL_TOKEN) return;
@@ -31,6 +34,7 @@ function linkSubApps(userId: number, username: string, email: string, plan: stri
       'Content-Type': 'application/json',
       'x-lumen-internal-token': LUMEN_INTERNAL_TOKEN,
     },
+    // cross-app: always string
     body: JSON.stringify({ username, email, lumenUserId: String(userId), plan }),
     signal: AbortSignal.timeout(5000),
   })
@@ -44,6 +48,7 @@ function linkSubApps(userId: number, username: string, email: string, plan: stri
       'Content-Type': 'application/json',
       'x-lumen-internal-token': LUMEN_INTERNAL_TOKEN,
     },
+    // cross-app: always string
     body: JSON.stringify({ email, username, lumenUserId: String(userId), plan }),
     signal: AbortSignal.timeout(5000),
   })

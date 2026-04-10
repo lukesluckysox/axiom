@@ -29,7 +29,7 @@ export async function seedExistingAxiomEntries(userId: string): Promise<{ seeded
     try {
       const resp = await fetch(`${axiomToolUrl}/api/truths`, {
         headers: {
-          'x-lumen-internal-token': process.env.LUMEN_INTERNAL_TOKEN || process.env.JWT_SECRET || '',
+          'x-lumen-internal-token': process.env.LUMEN_INTERNAL_TOKEN || '',
         },
       });
       if (resp.ok) {
