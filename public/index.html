@@ -2456,25 +2456,25 @@
           <svg class="state-card__arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
           <span class="state-card__label">Constitutional Principles</span>
           <span class="state-card__count" id="state-axiom">—</span>
-          <span class="state-card__sub">Principles taking shape</span>
+          <span class="state-card__sub">Proposals I examine and promote in Axiom become governing principles here</span>
         </a>
         <a class="state-card state-card--red" role="listitem" href="https://axiomtool-production.up.railway.app/#/tensions" target="_blank" rel="noopener noreferrer" data-app="axiom" data-has-sso="true" aria-label="View Active Tensions in Axiom">
           <svg class="state-card__arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
           <span class="state-card__label">Active Tensions</span>
           <span class="state-card__count" id="state-tension">—</span>
-          <span class="state-card__sub">Unresolved contradictions</span>
+          <span class="state-card__sub">Competing truths I surface in Axiom show up here as live tensions</span>
         </a>
         <a class="state-card state-card--amber" role="listitem" href="https://praxis-app.up.railway.app/#/experiments" target="_blank" rel="noopener noreferrer" data-app="praxis" data-has-sso="true" aria-label="View Live Experiments in Praxis">
           <svg class="state-card__arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
           <span class="state-card__label">Live Experiments</span>
           <span class="state-card__count" id="state-experiment">—</span>
-          <span class="state-card__sub">Hypotheses under test</span>
+          <span class="state-card__sub">Experiments I design in Praxis to test my beliefs appear here</span>
         </a>
         <a class="state-card state-card--brass" role="listitem" href="https://liminal-app.up.railway.app/archive" target="_blank" rel="noopener noreferrer" data-app="liminal" data-has-sso="true" aria-label="View Pending Inquiries in Liminal">
           <svg class="state-card__arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
           <span class="state-card__label">Pending Inquiries</span>
           <span class="state-card__count" id="state-pending">—</span>
-          <span class="state-card__sub">Prompts awaiting response</span>
+          <span class="state-card__sub">Open inquiries from my Liminal sessions collect here for follow-up</span>
         </a>
       </div>
     </div>
@@ -2496,7 +2496,7 @@
       <div id="feed-list" class="feed-list" role="feed" aria-label="Epistemic event feed">
         <!-- populated by JS -->
         <div class="feed-empty">
-          <p class="feed-empty__text">Your reflections begin here. Choose where to start.</p>
+          <p class="feed-empty__text">Nothing here yet. As I reflect in Liminal, run experiments in Praxis, and check in through Parallax, my activity will stream into this feed.</p>
         </div>
       </div>
     </div>
@@ -3181,7 +3181,7 @@ async function setSensitivity(val) {
       if (!container) return;
 
       if (!events || events.length === 0) {
-        container.innerHTML = '<div class="feed-empty"><p class="feed-empty__text">Your reflections begin here. Choose where to start.</p></div>';
+        container.innerHTML = '<div class="feed-empty"><p class="feed-empty__text">Nothing here yet. As I reflect in Liminal, run experiments in Praxis, and check in through Parallax, my activity will stream into this feed.</p></div>';
         return;
       }
 
@@ -3241,7 +3241,7 @@ async function setSensitivity(val) {
       var totalEl = document.getElementById('pulse-total');
       if (totalEl) {
         if (data.totalEvents === 0) {
-          totalEl.innerHTML = '<span class="pulse-empty">The loop is quiet. Begin with any tool.</span>';
+          totalEl.innerHTML = '<span class="pulse-empty">No reflections recorded yet. Each session in Liminal, experiment in Praxis, or check-in through Parallax adds a pulse here.</span>';
         } else {
           var toolCount = data.byApp ? Object.keys(data.byApp).filter(function(k) { return data.byApp[k] > 0; }).length : 0;
           var toolWord = toolCount === 1 ? 'tool' : 'tools';
@@ -3704,10 +3704,22 @@ async function setSensitivity(val) {
 })();
 </script>
 
-<!-- Service Worker registration for PWA -->
+<!-- Service Worker: purge old cache-first SW, register network-first v2 -->
 <script>
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js').catch(function() {});
+  // Unregister any existing SW and clear all caches, then re-register fresh
+  navigator.serviceWorker.getRegistrations().then(function(regs) {
+    var hadOld = false;
+    regs.forEach(function(r) { hadOld = true; r.unregister(); });
+    // Purge all SW caches (lumen-v1, etc.)
+    if (caches && caches.keys) {
+      caches.keys().then(function(keys) {
+        keys.forEach(function(k) { caches.delete(k); });
+      });
+    }
+    // Re-register the new network-first SW
+    navigator.serviceWorker.register('/sw.js').catch(function() {});
+  });
 }
 </script>
 
