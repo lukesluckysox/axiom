@@ -68,6 +68,16 @@ async function fetchSubAppUsers(url: string): Promise<any[]> {
   }
 }
 
+// ─── GET /api/oracle/token-debug ─────────────────────────────────────────────
+router.get('/token-debug', (_req: Request, res: Response) => {
+  res.json({
+    hasToken: !!LUMEN_INTERNAL_TOKEN,
+    tokenLength: LUMEN_INTERNAL_TOKEN.length,
+    tokenFirst4: LUMEN_INTERNAL_TOKEN.slice(0, 4),
+    tokenLast4: LUMEN_INTERNAL_TOKEN.slice(-4),
+  });
+});
+
 // ─── GET /api/oracle/users ──────────────────────────────────────────────────
 // Owner-only: returns Lumen users, per-sub-app users, and health status
 
