@@ -1,7 +1,9 @@
 // lib/lumenEmitter.ts
-// Sends epistemic events to Lumen's shared API layer
+// Sends epistemic events to Lumen's shared API layer.
+// Mirrors the Parallax → Lumen pattern: a base event fires for EVERY session,
+// then enriched signal events fire on top when the classifier detects markers.
 
-const LUMEN_API_URL = process.env.LUMEN_API_URL;
+const LUMEN_API_URL = (process.env.LUMEN_API_URL || '').replace(/\/+$/, '');  // strip trailing slash
 const LUMEN_INTERNAL_TOKEN = process.env.LUMEN_INTERNAL_TOKEN;
 
 export interface LumenEventPayload {
@@ -30,6 +32,65 @@ export async function emitLumenEvent(event: LumenEventPayload): Promise<void> {
   } catch (e) {
     console.error("[LumenEmitter] Failed to emit event:", e);
     // Never throw — emission must not break the main app flow
+  }
+}
+
+// ─── Fire-and-forget emitter for a Liminal tool session ────────────────────────
+// Mirrors Parallax's emitForRecord: always emits a base belief_candidate so every
+// session registers with Lumen (shows in activity feed / pulse), then emits
+// enriched signal events on top.
+export function emitForSession(opts: {
+  lumenUserId: string;
+  sessionId: string;
+  toolSlug: string;
+  inputText: string;
+  summary?: string;
+}): void {
+  if (!opts.lumenUserId) return;
+
+  const now = new Date().toISOString();
+  const description = (opts.inputText || '').slice(0, 500);
+  const nsRecordId = `session:${opts.sessionId}`;
+
+  // 1. Always emit a base event so every session shows in Lumen's activity feed
+  void emitLumenEvent({
+    userId: opts.lumenUserId,
+    sourceApp: "liminal",
+    sourceRecordId: nsRecordId,
+    eventType: "belief_candidate",
+    confidence: 0.5,
+    salience: 0.5,
+    payload: {
+      description,
+      toolSlug: opts.toolSlug,
+      summary: (opts.summary || '').slice(0, 300),
+      createdAt: now,
+      historical: false,
+    },
+    ingestionMode: "live",
+    createdAt: now,
+  });
+
+  // 2. Emit enriched signals from the classifier
+  const signals = classifyEntrySignal(opts.inputText);
+  for (const sig of signals) {
+    void emitLumenEvent({
+      userId: opts.lumenUserId,
+      sourceApp: "liminal",
+      sourceRecordId: nsRecordId + ":" + sig.eventType,
+      eventType: sig.eventType,
+      confidence: sig.confidence,
+      salience: sig.salience,
+      evidence: sig.evidence,
+      payload: {
+        content: description,
+        toolSlug: opts.toolSlug,
+        createdAt: now,
+        historical: false,
+      },
+      ingestionMode: "live",
+      createdAt: now,
+    });
   }
 }
 

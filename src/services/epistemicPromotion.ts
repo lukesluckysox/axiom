@@ -72,7 +72,7 @@ export async function processEvent(event: EpistemicEvent): Promise<void> {
       await processPraxisEvent(event);
       break;
     case 'axiom':
-      // Axiom events are typically seeded or direct statements — no auto-promotion
+      await processAxiomEvent(event);
       break;
   }
 }
@@ -290,6 +290,137 @@ async function processPraxisEvent(event: EpistemicEvent): Promise<void> {
         originMode: 'live',
         seeded: false,
       });
+      break;
+    }
+    // Praxis emitter sends these event types — promote them into the loop
+    case 'experiment_completed': {
+      // Completed experiments with axiomSignal become doctrine candidates
+      const axiomSignal = payload.axiomSignal as Record<string, string> | undefined;
+      if (axiomSignal?.suggestedTruthClaim) {
+        await createCandidate({
+          userId: event.userId,
+          candidateType: 'doctrine_candidate',
+          title: axiomSignal.suggestedTruthClaim.slice(0, 200),
+          summary: (payload.meaningExtraction as string) || 'A lived experiment produced this finding',
+          status: 'queued_for_axiom',
+          targetApp: 'axiom',
+          confidence: event.confidence,
+          sourceEventIds: [event.id],
+          originMode: 'live',
+          seeded: false,
+        });
+      }
+      break;
+    }
+    case 'doctrine_crystallized': {
+      const dAxiomSignal = payload.axiomSignal as Record<string, string> | undefined;
+      if (dAxiomSignal?.suggestedTruthClaim) {
+        await createCandidate({
+          userId: event.userId,
+          candidateType: 'doctrine_candidate',
+          title: dAxiomSignal.suggestedTruthClaim.slice(0, 200),
+          summary: (payload.description as string) || 'A doctrine was established through experimentation',
+          status: 'queued_for_axiom',
+          targetApp: 'axiom',
+          confidence: event.confidence,
+          sourceEventIds: [event.id],
+          originMode: 'live',
+          seeded: false,
+        });
+      }
+      break;
+    }
+    case 'tension_discovered': {
+      await createCandidate({
+        userId: event.userId,
+        candidateType: 'tension_candidate',
+        title: `Tension: ${(payload.poleA as string) || '?'} vs ${(payload.poleB as string) || '?'}`,
+        summary: (payload.insight as string) || 'A tension was discovered through lived experimentation',
+        status: 'queued_for_axiom',
+        targetApp: 'axiom',
+        confidence: event.confidence,
+        sourceEventIds: [event.id],
+        originMode: 'live',
+        seeded: false,
+      });
+      break;
+    }
+  }
+}
+
+// ─── Axiom thresholds ────────────────────────────────────────────────────────
+// Axiom events were previously silently dropped. Now they feed back into the loop:
+// constitutional_promotion → creates Liminal prompts for counter-examination
+// truth_revision → creates revision candidates to track doctrinal shifts
+// tension_surfaced → creates tension candidates queued for Axiom
+
+async function processAxiomEvent(event: EpistemicEvent): Promise<void> {
+  // Seeded records must never be re-promoted
+  if (event.seeded) return;
+
+  const payload = safeParse(event.payload, {}) as Record<string, unknown>;
+
+  switch (event.eventType) {
+    case 'constitutional_promotion': {
+      // A truth was promoted to constitutional status — seed a Liminal counter-inquiry
+      const truthClaim = (payload.truthClaim as string) || '';
+      const liminalSeed = (payload.liminalSeed as string) || '';
+      if (liminalSeed) {
+        db.insert(promptQueue)
+          .values({
+            id: uid(),
+            userId: event.userId,
+            destinationApp: 'liminal',
+            promptType: 'counter_examination',
+            title: `Examine: ${truthClaim.slice(0, 80)}`,
+            body: liminalSeed,
+            relatedCandidateId: null,
+            priority: 40,
+            status: 'open',
+            seeded: false,
+            createdAt: now(),
+          })
+          .run();
+      }
+      break;
+    }
+    case 'truth_revision': {
+      // A truth was revised — track as a revision candidate
+      const newClaim = (payload.newClaim as string) || '';
+      if (newClaim) {
+        await createCandidate({
+          userId: event.userId,
+          candidateType: 'revision_candidate',
+          title: newClaim.slice(0, 200),
+          summary: `Revised from: "${((payload.previousClaim as string) || '').slice(0, 150)}"`,
+          status: 'queued_for_axiom',
+          targetApp: 'axiom',
+          confidence: event.confidence,
+          sourceEventIds: [event.id],
+          originMode: 'live',
+          seeded: false,
+        });
+      }
+      break;
+    }
+    case 'tension_surfaced': {
+      // A tension emerged from Axiom's analysis — queue it
+      const poleA = (payload.poleA as string) || '';
+      const poleB = (payload.poleB as string) || '';
+      if (poleA && poleB) {
+        await createCandidate({
+          userId: event.userId,
+          candidateType: 'tension_candidate',
+          title: `Tension: ${poleA} vs ${poleB}`,
+          summary: (payload.description as string) || `An unresolved tension between ${poleA} and ${poleB}`,
+          status: 'queued_for_axiom',
+          targetApp: 'axiom',
+          confidence: event.confidence,
+          sourceEventIds: [event.id],
+          originMode: 'live',
+          seeded: false,
+        });
+      }
       break;
     }
   }

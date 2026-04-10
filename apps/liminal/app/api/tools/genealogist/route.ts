@@ -4,8 +4,8 @@ import { getSession } from '@/lib/auth/session';
 import { queryOne } from '@/lib/db';
 import { runGenealogist } from '@/lib/tools/genealogist/orchestrator';
 import { checkAndIncrementUsage } from '@/lib/usage';
-import { classifyEntrySignal, emitLumenEvent } from '@/lib/lumenEmitter';
-import { emitToParallax, emitToAxiom } from '@/lib/parallaxEmitter';
+import { emitForSession } from '@/lib/lumenEmitter';
+import { emitToParallax, emitToAxiom, emitToPraxis } from '@/lib/parallaxEmitter';
 
 const schema = z.object({
   belief: z
@@ -54,23 +54,9 @@ export async function POST(request: NextRequest) {
       [user.id, 'genealogist', title, belief, JSON.stringify(output), summary]
     );
 
-    // Fire-and-forget: emit epistemic events to Lumen
+    // Fire-and-forget: emit base + enriched epistemic events to Lumen
     if (user.lumen_user_id && session) {
-      const signals = classifyEntrySignal(belief);
-      for (const sig of signals) {
-        void emitLumenEvent({
-          userId: user.lumen_user_id,
-          sourceApp: "liminal",
-          sourceRecordId: session.id,
-          eventType: sig.eventType,
-          confidence: sig.confidence,
-          salience: sig.salience,
-          evidence: sig.evidence,
-          payload: { content: belief.slice(0, 500), createdAt: new Date().toISOString(), historical: false },
-          ingestionMode: "live",
-          createdAt: new Date().toISOString(),
-        });
-      }
+      emitForSession({ lumenUserId: user.lumen_user_id, sessionId: session.id, toolSlug: 'genealogist', inputText: belief, summary });
     }
 
 
@@ -85,12 +71,14 @@ export async function POST(request: NextRequest) {
         structuredOutput: output,
         summary: typeof summary === 'string' ? summary : '',
       };
-      const [parallaxResult, axiomResult] = await Promise.all([
+      const [parallaxResult, axiomResult, praxisResult] = await Promise.all([
         emitToParallax(emitPayload),
         emitToAxiom(emitPayload),
+        emitToPraxis(emitPayload),
       ]);
       if (parallaxResult.sent) downstream.push({ destination: parallaxResult.destination, description: parallaxResult.description });
       if (axiomResult.sent) downstream.push({ destination: axiomResult.destination, description: axiomResult.description });
+      if (praxisResult.sent) downstream.push({ destination: praxisResult.destination, description: praxisResult.description });
     }
     return NextResponse.json({ sessionId: session!.id, output, downstream });
   } catch (err) {

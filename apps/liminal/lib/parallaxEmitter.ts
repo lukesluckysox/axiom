@@ -47,6 +47,72 @@ export async function emitToParallax(event: {
   }
 }
 
+// Push testable hypotheses to Praxis as proposed experiments
+const PRAXIS_URL = process.env.PRAXIS_URL;
+
+export async function emitToPraxis(event: {
+  lumenUserId: string;
+  sessionId: string;
+  toolSlug: string;
+  inputText: string;
+  structuredOutput: object;
+  summary: string;
+}): Promise<EmitResult> {
+  if (!PRAXIS_URL || !LUMEN_INTERNAL_TOKEN) {
+    return { sent: false, destination: 'praxis', description: 'A hypothesis awaits testing.' };
+  }
+
+  // Only tools that produce testable hypotheses should push to Praxis
+  const praxisTools = ["fool", "interlocutor", "small-council"];
+  if (!praxisTools.includes(event.toolSlug)) {
+    return { sent: false, destination: 'praxis', description: 'A hypothesis awaits testing.' };
+  }
+
+  try {
+    const output = event.structuredOutput as any;
+    let hypothesis = "";
+    let design = "";
+
+    if (event.toolSlug === "fool") {
+      // The Fool challenges a position — the hypothesis is whether the challenge holds
+      hypothesis = output.why_wrong || output.challenge || "";
+      design = `The Fool challenged your position. Test whether this challenge holds by observing your behavior around this belief for one week.`;
+    } else if (event.toolSlug === "interlocutor") {
+      // The Interlocutor produces objections — the strongest objection becomes the hypothesis
+      const objections = output.strong_objections || [];
+      hypothesis = objections[0] || output.clarified_thesis || "";
+      design = `The Interlocutor raised this objection. Design a situation where you can observe whether it holds.`;
+    } else if (event.toolSlug === "small-council") {
+      // The Small Council produces a recommendation — test it
+      hypothesis = output.recommendation || output.summary || "";
+      design = `The Small Council recommended this. Implement it for a bounded period and observe the results.`;
+    }
+
+    if (!hypothesis) {
+      return { sent: false, destination: 'praxis', description: 'A hypothesis awaits testing.' };
+    }
+
+    await fetch(`${PRAXIS_URL}/api/internal/from-lumen`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-lumen-internal-token": LUMEN_INTERNAL_TOKEN,
+      },
+      body: JSON.stringify({
+        title: `Liminal (${event.toolSlug}): ${hypothesis.slice(0, 150)}`,
+        hypothesis,
+        design,
+        source: 'liminal',
+        userId: event.lumenUserId,
+      }),
+    });
+    return { sent: true, destination: 'praxis', description: 'A hypothesis awaits testing.' };
+  } catch (e) {
+    console.error("[PraxisEmitter] Failed to push from Liminal:", e);
+    return { sent: false, destination: 'praxis', description: 'A hypothesis awaits testing.' };
+  }
+}
+
 // Also push to Axiom when we detect strong belief/truth signals
 const AXIOM_URL = process.env.AXIOM_TOOL_URL;
 
