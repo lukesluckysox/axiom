@@ -421,14 +421,10 @@
       inset-block-start: 0; inset-inline: 0;
       z-index: 100;
       padding-block: var(--sp-4);
-      border-bottom: 1px solid transparent;
-      transition: background .4s var(--ease), border-color .4s var(--ease);
-    }
-    .nav.scrolled {
+      border-bottom: 1px solid var(--border);
       background: color-mix(in oklch, var(--bg) 88%, transparent);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
-      border-color: var(--border);
     }
 
     .nav__row {
@@ -1434,6 +1430,12 @@
     }
     .nav__user--visible { display: flex; }
     .nav__username {
+      background: none;
+      border: none;
+      padding: 0;
+      margin: 0;
+      font: inherit;
+      letter-spacing: inherit;
       color: var(--text);
       cursor: pointer;
       transition: color 180ms var(--ease);
@@ -2375,7 +2377,7 @@
           </div>
         </div>
         <div class="nav__user" id="nav-user" aria-live="polite">
-          <span class="nav__username"></span>
+          <button class="nav__username" type="button" aria-label="Open profile"></button>
           <button class="nav__signout" id="nav-signout" aria-label="Sign out of Lumen">Sign out</button>
         </div>
       </div>
