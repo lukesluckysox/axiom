@@ -2367,6 +2367,208 @@
       top: -0.05em;
     }
 
+    /* ─────────────────────────────────────────────
+       MOBILE OPTIMIZATION
+    ───────────────────────────────────────────── */
+
+    /* Phone breakpoint: tool cards single column */
+    @media (max-width: 480px) {
+      .tools-grid { grid-template-columns: 1fr; }
+    }
+
+    /* KPI state cards: 2x2 on tablet, single on phone */
+    @media (max-width: 480px) {
+      .state-grid { grid-template-columns: 1fr; }
+      .state-card { padding: var(--sp-4) var(--sp-5); }
+    }
+
+    /* Body text max line-length on mobile */
+    @media (max-width: 640px) {
+      .card__desc,
+      .loop-step__desc,
+      .feed-item__summary,
+      .hero__body {
+        max-width: 45ch;
+      }
+    }
+
+    /* Scale section headings on mobile */
+    @media (max-width: 480px) {
+      .hero__title {
+        font-size: clamp(1.8rem, 1rem + 3vw, 2.5rem);
+      }
+      .state-title,
+      .feed-header__title,
+      .pulse-title {
+        font-size: var(--text-base);
+      }
+    }
+
+    /* Reduce section padding on mobile */
+    @media (max-width: 640px) {
+      .hero {
+        padding-block: var(--sp-12) var(--sp-8);
+        min-height: auto;
+      }
+      .tools-band,
+      .state-band,
+      .feed-band,
+      .pulse-band {
+        padding-block: var(--sp-6);
+      }
+      .card {
+        padding: var(--sp-5);
+      }
+    }
+
+    /* Activity feed items: proper mobile padding */
+    @media (max-width: 640px) {
+      .feed-item {
+        gap: var(--sp-3);
+        padding: var(--sp-3) 0;
+      }
+    }
+
+    /* About modal: scrollable on mobile */
+    #about-modal {
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+    }
+
+    /* Auth gate: comfortable mobile padding */
+    @media (max-width: 480px) {
+      .gate { padding: var(--sp-4); }
+      .gate__inner { gap: var(--sp-4); }
+      .plan-card__header { padding: 12px var(--sp-4); min-height: 44px; }
+    }
+
+    /* Palette dots: at least 32px tappable area on mobile */
+    @media (max-width: 640px) {
+      .palette-dot {
+        width: 20px;
+        height: 20px;
+        min-width: 32px;
+        min-height: 32px;
+        padding: 6px;
+        background-clip: content-box;
+      }
+      .palette-dots {
+        gap: 4px;
+      }
+    }
+
+    /* Sensitivity pills: thumb-friendly on mobile */
+    @media (max-width: 640px) {
+      .sens-pill {
+        min-height: 36px !important;
+        min-width: 44px;
+        padding: 0.45rem 0.85rem !important;
+      }
+    }
+
+    /* Loop pulse / sundial: touch-friendly */
+    @media (max-width: 640px) {
+      .pulse-inner {
+        flex-direction: column;
+        gap: var(--sp-6);
+      }
+      .pulse-chart {
+        width: 100%;
+      }
+      .pulse-dots {
+        gap: var(--sp-2);
+      }
+    }
+
+    /* Footer: safe-area-inset-bottom */
+    .footer {
+      padding-bottom: calc(var(--sp-8) + env(safe-area-inset-bottom, 0px));
+    }
+
+    /* Performance: will-change on animated elements only */
+    .shell-pulse,
+    .pulse-day__dot:hover,
+    .gate--exit {
+      will-change: transform;
+    }
+
+    /* ── PWA Install Banner ── */
+    .pwa-banner {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 12px 20px;
+      padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+      background: var(--surface);
+      border-top: 1px solid var(--border-md);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      z-index: 9999;
+      transform: translateY(100%);
+      opacity: 0;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+    }
+    .pwa-banner--visible {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .pwa-banner { transition: none; }
+    }
+    .pwa-banner__text {
+      font-family: var(--font-body);
+      font-size: 13px;
+      color: var(--text);
+      margin: 0;
+      flex: 1;
+    }
+    .pwa-banner__install {
+      font-family: var(--font-body);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 8px 16px;
+      border-radius: var(--r-sm);
+      background: var(--gold);
+      color: #1a1a2e;
+      border: none;
+      cursor: pointer;
+      white-space: nowrap;
+      min-height: 44px;
+    }
+    .pwa-banner__dismiss {
+      font-size: 18px;
+      color: var(--faint);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 8px;
+      min-width: 44px;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    /* Tablet/desktop: centered floating bar */
+    @media (min-width: 641px) {
+      .pwa-banner {
+        left: 50%;
+        right: auto;
+        transform: translateX(-50%) translateY(100%);
+        max-width: 480px;
+        border-radius: var(--r-md) var(--r-md) 0 0;
+        border: 1px solid var(--border-md);
+        border-bottom: none;
+      }
+      .pwa-banner--visible {
+        transform: translateX(-50%) translateY(0);
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -4056,6 +4258,79 @@ if ('serviceWorker' in navigator) {
 }
 </script>
 
+<!-- ══ PWA Install Banner ══ -->
+<script>
+(function () {
+  var deferredPrompt = null;
+  var banner = document.getElementById('pwa-install-banner');
+  var installBtn = document.getElementById('pwa-install-btn');
+  var dismissBtn = document.getElementById('pwa-dismiss-btn');
+
+  function isInstalled() { return localStorage.getItem('lumen_pwa_installed') === 'true'; }
+  function isDismissed() { return localStorage.getItem('lumen_pwa_prompt_dismissed') === 'true'; }
+  function firstSessionDone() { return localStorage.getItem('lumen_first_session_completed') === 'true'; }
+
+  window.addEventListener('beforeinstallprompt', function (e) {
+    e.preventDefault();
+    deferredPrompt = e;
+  });
+
+  window.addEventListener('appinstalled', function () {
+    localStorage.setItem('lumen_pwa_installed', 'true');
+    hideBanner();
+  });
+
+  function showBanner() {
+    if (!banner || !deferredPrompt || isInstalled() || isDismissed()) return;
+    banner.style.display = 'flex';
+    banner.offsetHeight; // force reflow
+    banner.classList.add('pwa-banner--visible');
+  }
+
+  function hideBanner() {
+    if (!banner) return;
+    banner.classList.remove('pwa-banner--visible');
+    setTimeout(function () { banner.style.display = 'none'; }, 300);
+  }
+
+  if (installBtn) {
+    installBtn.addEventListener('click', function () {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(function (result) {
+        if (result.outcome === 'accepted') {
+          localStorage.setItem('lumen_pwa_installed', 'true');
+        } else {
+          localStorage.setItem('lumen_pwa_prompt_dismissed', 'true');
+        }
+        deferredPrompt = null;
+        hideBanner();
+      });
+    });
+  }
+
+  if (dismissBtn) {
+    dismissBtn.addEventListener('click', function () {
+      localStorage.setItem('lumen_pwa_prompt_dismissed', 'true');
+      hideBanner();
+    });
+  }
+
+  // Expose trigger for onboarding completion
+  window.__lumenShowInstallBanner = function () {
+    localStorage.setItem('lumen_first_session_completed', 'true');
+    showBanner();
+  };
+
+  // Check on page load if first session was already completed
+  window.addEventListener('load', function () {
+    if (firstSessionDone() && deferredPrompt && !isInstalled() && !isDismissed()) {
+      showBanner();
+    }
+  });
+})();
+</script>
+
 <!-- ══ Profile Panel Logic ══ -->
 <script>
 (function () {
@@ -4447,6 +4722,15 @@ if ('serviceWorker' in navigator) {
   </div>
 </div>
 
+<!-- ── PWA Install Banner ── -->
+<div id="pwa-install-banner" class="pwa-banner" role="complementary" aria-label="Install prompt" style="display:none;">
+  <p class="pwa-banner__text">Add Lumen to your home screen for the full experience</p>
+  <div class="pwa-banner__actions" style="display:flex;align-items:center;gap:8px;">
+    <button id="pwa-install-btn" class="pwa-banner__install">Install</button>
+    <button id="pwa-dismiss-btn" class="pwa-banner__dismiss" aria-label="Dismiss">&times;</button>
+  </div>
+</div>
+
 <!-- ── Guided First-Session Onboarding Overlay ── -->
 <div id="onboarding-overlay" style="display:none; position:fixed; inset:0; z-index:9998; background:var(--bg); align-items:center; justify-content:center;">
   <div id="onboarding-card" style="max-width:480px; padding:2rem; text-align:center;">
@@ -4503,6 +4787,7 @@ if ('serviceWorker' in navigator) {
         localStorage.setItem('lumen_onboarding_complete', 'true');
         overlay.style.display = 'none';
         if (pollTimer) clearInterval(pollTimer);
+        if (window.__lumenShowInstallBanner) window.__lumenShowInstallBanner();
       } else {
         var ssoLinks = document.querySelectorAll('[data-has-sso="true"]');
         var targetUrl = APP_URLS[step];
