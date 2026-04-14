@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { ARCHETYPE_MAP } from "@shared/archetypes";
+import { SkeletonCard } from "@/components/Skeleton";
 
 interface WrappedData {
   ready: boolean;
@@ -9,7 +10,7 @@ interface WrappedData {
   dominant: { archetype: string; percentage: number; count: number };
   rarest: { archetype: string; percentage: number; count: number };
   volatile: { dim: string; range: number; min: number; max: number };
-  sonic: { topArtist: string; moodProfile: Record<string, number>; totalTracks: number };
+  sonic: { topArtist: string; sonicShape: Record<string, number>; totalTracks: number };
   mirrorLine: string | null;
   stats: { checkins: number; writings: number; tracks: number };
 }
@@ -85,7 +86,7 @@ function CardSonic({ data }: { data: WrappedData }) {
     );
   }
 
-  const bars = Object.entries(data.sonic.moodProfile).sort((a, b) => b[1] - a[1]);
+  const bars = Object.entries(data.sonic.sonicShape).sort((a, b) => b[1] - a[1]);
 
   return (
     <div className="flex flex-col items-center justify-center text-center px-8">
@@ -113,7 +114,7 @@ function CardSonic({ data }: { data: WrappedData }) {
         </div>
       )}
       <p className="text-[13px] text-white/40 leading-relaxed max-w-xs">
-        Your listening patterns reveal what words can't — the emotional frequencies you're drawn to.
+        Your listening patterns trace the sonic shape you're drawn to — texture, rhythm, and warmth over time.
       </p>
     </div>
   );
@@ -232,8 +233,12 @@ export default function WrappedPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#0a0c10] flex items-center justify-center">
-        <p className="text-xs text-white/20 font-mono animate-pulse">assembling your wrapped...</p>
+      <div className="min-h-screen bg-[#0a0c10] flex flex-col items-center justify-center px-4">
+        <div className="w-full max-w-md space-y-4">
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
+        </div>
       </div>
     );
   }

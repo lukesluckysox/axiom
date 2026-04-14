@@ -10,14 +10,30 @@ import {
   type IdentityEcho, type InsertIdentityEcho, identityEchoes,
   type SpotifyWhitelist, type InsertSpotifyWhitelist, spotifyWhitelistQueue,
   type LiminalSession, type InsertLiminalSession, liminalSessions,
+  type RecommendationFeedback, type InsertRecommendationFeedback, recommendationFeedback,
 } from "@shared/schema";
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import Database from "better-sqlite3";
 import { eq, desc, and, gte, sql, count } from "drizzle-orm";
+import path from "path";
+import fs from "fs";
 
 const dbPath = process.env.RAILWAY_VOLUME_MOUNT_PATH
   ? `${process.env.RAILWAY_VOLUME_MOUNT_PATH}/parallax.db`
-  : "data.db";
+  : path.resolve(process.cwd(), "data.db");
+
+fs.mkdirSync(path.dirname(dbPath), { recursive: true });
+
+const volumeSet = !!process.env.RAILWAY_VOLUME_MOUNT_PATH;
+console.log(`[parallax/db] SQLite path: ${dbPath}`);
+console.log(`[parallax/db] RAILWAY_VOLUME_MOUNT_PATH: ${process.env.RAILWAY_VOLUME_MOUNT_PATH ?? '(NOT SET)'}`);
+console.log(`[parallax/db] Persistent volume: ${volumeSet ? 'YES' : 'NO \u2014 data will be lost on redeploy'}`);
+if (!volumeSet) {
+  console.warn('[parallax/db] \u26a0\ufe0f  Set RAILWAY_VOLUME_MOUNT_PATH in Railway Variables to persist data across deploys.');
+}
+const dbExists = fs.existsSync(dbPath);
+console.log(`[parallax/db] DB file exists: ${dbExists}${dbExists ? ` (${(fs.statSync(dbPath).size / 1024).toFixed(1)} KB)` : ' \u2014 will create fresh'}`);
+
 export const sqlite = new Database(dbPath);
 sqlite.pragma("journal_mode = WAL");
 
@@ -214,6 +230,14 @@ export class DatabaseStorage implements IStorage {
         writing_id INTEGER,
         created_at TEXT NOT NULL
       );
+      CREATE TABLE IF NOT EXISTS recommendation_feedback (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        section TEXT NOT NULL,
+        item_id TEXT NOT NULL,
+        feedback_type TEXT NOT NULL,
+        created_at TEXT NOT NULL
+      );
     `);
 
     // Migrate dimension names: discipline→agency, health→vitality, ambition→drive
@@ -267,6 +291,7 @@ export class DatabaseStorage implements IStorage {
       sqlite.exec("ALTER TABLE users ADD COLUMN calibrated INTEGER DEFAULT 0");
       sqlite.exec("UPDATE users SET calibrated = 1 WHERE calibrated = 0 AND id IN (SELECT DISTINCT user_id FROM checkins)");
     } catch { /* already exists */ }
+    try { sqlite.exec("ALTER TABLE users ADD COLUMN email TEXT"); } catch { /* already exists */ }
     try { sqlite.exec("ALTER TABLE users ADD COLUMN pro INTEGER DEFAULT 0"); } catch { /* already exists */ }
     try { sqlite.exec("ALTER TABLE users ADD COLUMN lumen_user_id TEXT"); } catch { /* already exists */ }
   }
@@ -707,6 +732,19 @@ export class DatabaseStorage implements IStorage {
       .run(checkinId, writingId, id);
   }
 
+  // ---- Recommendation Feedback ----
+  logRecommendationFeedback(data: InsertRecommendationFeedback): RecommendationFeedback {
+    return db.insert(recommendationFeedback).values(data).returning().get();
+  }
+
+  getRecommendationFeedback(userId: number): RecommendationFeedback[] {
+    return db.select().from(recommendationFeedback)
+      .where(eq(recommendationFeedback.user_id, userId))
+      .orderBy(desc(recommendationFeedback.created_at))
+      .limit(100)
+      .all();
+  }
+
   // ---- Account Deletion ----
   deleteUserAndData(userId: number): void {
     sqlite.exec(`DELETE FROM checkins WHERE user_id = ${userId}`);
@@ -719,6 +757,7 @@ export class DatabaseStorage implements IStorage {
     sqlite.exec(`DELETE FROM identity_echoes WHERE user_id = ${userId}`);
     sqlite.exec(`DELETE FROM variant_history WHERE user_id = ${userId}`);
     sqlite.exec(`DELETE FROM liminal_sessions WHERE user_id = ${userId}`);
+    sqlite.exec(`DELETE FROM recommendation_feedback WHERE user_id = ${userId}`);
     sqlite.exec(`DELETE FROM users WHERE id = ${userId}`);
   }
 }

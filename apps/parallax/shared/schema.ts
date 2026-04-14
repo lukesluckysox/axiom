@@ -7,6 +7,7 @@ export const users = sqliteTable("users", {
   username: text("username").notNull().unique(),
   password_hash: text("password_hash").notNull(),
   display_name: text("display_name"),
+  email: text("email"),
   created_at: text("created_at").notNull(),
   age: text("age"),
   gender: text("gender"),
@@ -132,6 +133,19 @@ export const identityEchoes = sqliteTable("identity_echoes", {
   similarity_score: integer("similarity_score").notNull(), // 0-100
   current_vec: text("current_vec").notNull(), // JSON
 });
+
+export const recommendationFeedback = sqliteTable("recommendation_feedback", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  user_id: integer("user_id").notNull(),
+  section: text("section").notNull(), // "sonic_expansion" | "taste_paths" | "weekly_crate"
+  item_id: text("item_id").notNull(), // identifier for the specific recommendation
+  feedback_type: text("feedback_type").notNull(), // "more_like_this" | "deeper_cut" | "less_familiar" | "outside_my_lane"
+  created_at: text("created_at").notNull(),
+});
+
+export const insertRecommendationFeedbackSchema = createInsertSchema(recommendationFeedback).omit({ id: true });
+export type InsertRecommendationFeedback = z.infer<typeof insertRecommendationFeedbackSchema>;
+export type RecommendationFeedback = typeof recommendationFeedback.$inferSelect;
 
 export const spotifyWhitelistQueue = sqliteTable("spotify_whitelist_queue", {
   id: integer("id").primaryKey({ autoIncrement: true }),
