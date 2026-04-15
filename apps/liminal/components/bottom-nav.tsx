@@ -1,22 +1,19 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { Home, Users, BookOpen, Sparkles, User, CircleDot } from 'lucide-react';
-
-const NAV_ITEMS = [
-  { href: '/', label: 'Home', Icon: Home },
-  { href: '/tool/small-council', label: 'Council', Icon: Users },
-  { href: '/tool/fool', label: 'Fool', Icon: Sparkles },
-  { href: '/archive', label: 'Archive', Icon: BookOpen },
-  { href: '/account', label: 'Account', Icon: User },
-] as const;
+import { Home, CircleDot, Compass, FlaskConical, Zap, Ghost } from 'lucide-react';
 
 const LUMEN_HUB_URL = 'https://lumen-os.up.railway.app';
+const CURRENT_APP = 'liminal';
+
+const APP_NAV = [
+  { key: 'parallax', href: 'https://parallaxapp.up.railway.app/', icon: Compass, label: 'Parallax' },
+  { key: 'praxis', href: 'https://praxis-app.up.railway.app/', icon: FlaskConical, label: 'Praxis' },
+  { key: 'axiom', href: 'https://axiomtool-production.up.railway.app/#/', icon: Zap, label: 'Axiom' },
+  { key: 'liminal', href: 'https://liminal-app.up.railway.app/', icon: Ghost, label: 'Liminal' },
+] as const;
 
 export function BottomNav() {
-  const pathname = usePathname();
-
   return (
     <nav
       aria-label="Mobile navigation"
@@ -34,6 +31,57 @@ export function BottomNav() {
       }}
       className="md:hidden"
     >
+      {/* Top row: Lumen Home + App Home */}
+      <div
+        style={{
+          display: 'flex',
+          borderBottom: '1px solid rgb(var(--color-border) / 0.1)',
+        }}
+      >
+        <a
+          href={LUMEN_HUB_URL}
+          style={{
+            flex: 1,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '0.375rem',
+            padding: '0.5rem',
+            textDecoration: 'none',
+            color: 'rgb(var(--color-text-faint))',
+            opacity: 0.6,
+            transition: 'opacity 0.15s ease',
+          }}
+        >
+          <CircleDot style={{ width: '14px', height: '14px', flexShrink: 0 }} strokeWidth={1.5} />
+          <span style={{ fontSize: '10px', fontFamily: 'var(--font-body), system-ui, sans-serif', letterSpacing: '0.04em' }}>
+            Lumen
+          </span>
+        </a>
+        <div style={{ width: '1px', background: 'rgb(var(--color-border) / 0.1)' }} />
+        <Link
+          href="/"
+          style={{
+            flex: 1,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '0.375rem',
+            padding: '0.5rem',
+            textDecoration: 'none',
+            color: 'rgb(var(--color-text-faint))',
+            opacity: 0.6,
+            transition: 'opacity 0.15s ease',
+          }}
+        >
+          <Home style={{ width: '14px', height: '14px', flexShrink: 0 }} strokeWidth={1.5} />
+          <span style={{ fontSize: '10px', fontFamily: 'var(--font-body), system-ui, sans-serif', letterSpacing: '0.04em' }}>
+            Liminal
+          </span>
+        </Link>
+      </div>
+
+      {/* Bottom row: 4 sub-apps */}
       <div
         style={{
           maxWidth: '640px',
@@ -44,46 +92,12 @@ export function BottomNav() {
           alignItems: 'stretch',
         }}
       >
-        <a
-          href={LUMEN_HUB_URL}
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: '0.25rem',
-            padding: '0.625rem 0.5rem',
-            minHeight: '48px',
-            textDecoration: 'none',
-            color: 'rgb(var(--color-text-faint))',
-            opacity: 0.55,
-            transition: 'opacity 0.15s ease, color 0.15s ease',
-            flex: 1,
-            justifyContent: 'center',
-          }}
-        >
-          <CircleDot
-            style={{ width: '20px', height: '20px', flexShrink: 0 }}
-            strokeWidth={1.5}
-          />
-          <span
-            style={{
-              fontSize: '10px',
-              fontFamily: 'var(--font-body), system-ui, sans-serif',
-              letterSpacing: '0.04em',
-              lineHeight: 1,
-              fontWeight: 400,
-            }}
-          >
-            Lumen
-          </span>
-        </a>
-        {NAV_ITEMS.map(({ href, label, Icon }) => {
-          const isActive =
-            href === '/' ? pathname === '/' : pathname.startsWith(href);
+        {APP_NAV.map(({ key, href, icon: Icon, label }) => {
+          const isSelf = key === CURRENT_APP;
           return (
-            <Link
-              key={href}
-              href={href}
+            <a
+              key={key}
+              href={isSelf ? '/' : href}
               style={{
                 display: 'flex',
                 flexDirection: 'column',
@@ -92,10 +106,10 @@ export function BottomNav() {
                 padding: '0.625rem 0.5rem',
                 minHeight: '48px',
                 textDecoration: 'none',
-                color: isActive
+                color: isSelf
                   ? 'rgb(var(--color-gold))'
                   : 'rgb(var(--color-text-faint))',
-                opacity: isActive ? 1 : 0.55,
+                opacity: isSelf ? 1 : 0.4,
                 transition: 'opacity 0.15s ease, color 0.15s ease',
                 flex: 1,
                 justifyContent: 'center',
@@ -103,7 +117,7 @@ export function BottomNav() {
             >
               <Icon
                 style={{ width: '20px', height: '20px', flexShrink: 0 }}
-                strokeWidth={isActive ? 2 : 1.5}
+                strokeWidth={isSelf ? 2 : 1.5}
               />
               <span
                 style={{
@@ -111,12 +125,12 @@ export function BottomNav() {
                   fontFamily: 'var(--font-body), system-ui, sans-serif',
                   letterSpacing: '0.04em',
                   lineHeight: 1,
-                  fontWeight: isActive ? 600 : 400,
+                  fontWeight: isSelf ? 600 : 400,
                 }}
               >
                 {label}
               </span>
-            </Link>
+            </a>
           );
         })}
       </div>
