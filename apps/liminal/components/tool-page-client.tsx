@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, type FormEvent, type ReactNode } from 'react';
+import { useState, useEffect, type FormEvent, type ReactNode } from 'react';
 import { ToolIcon } from '@/components/tool-icon';
 import { DownstreamSummary, type DownstreamItem } from '@/components/downstream-summary';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
 export interface ToolConfig {
@@ -63,10 +63,19 @@ const TRUST_NOTES: Record<string, { bestFor: string; notFor: string }> = {
 
 export function ToolPageClient({ config }: ToolPageClientProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [input, setInput] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [downstream, setDownstream] = useState<DownstreamItem[]>([]);
+
+  // Pre-fill from ?claim= query parameter (e.g. from smart input on home page)
+  useEffect(() => {
+    const claim = searchParams.get('claim');
+    if (claim) {
+      setInput(decodeURIComponent(claim));
+    }
+  }, [searchParams]);
 
   const minLen = config.minLength ?? 10;
   const accent = config.accentHue ?? 'var(--color-gold)';
@@ -117,6 +126,13 @@ export function ToolPageClient({ config }: ToolPageClientProps) {
       if (data.sessionId) {
         const prev = parseInt(localStorage.getItem('liminal_sessions_completed') ?? '0', 10);
         localStorage.setItem('liminal_sessions_completed', String(prev + 1));
+        // Track tool usage for dynamic bottom nav
+        try {
+          const stored = localStorage.getItem('liminal_recent_tools');
+          const recent: string[] = stored ? JSON.parse(stored) : [];
+          const updated = [config.slug, ...recent.filter((s) => s !== config.slug)].slice(0, 10);
+          localStorage.setItem('liminal_recent_tools', JSON.stringify(updated));
+        } catch { /* ignore */ }
       }
 
       // Store downstream data before navigating

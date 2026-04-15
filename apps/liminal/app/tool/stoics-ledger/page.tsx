@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 import { Nav } from '@/components/nav';
 import { ToolPageClient } from '@/components/tool-page-client';
 import { getSession } from '@/lib/auth/session';
@@ -18,6 +19,7 @@ export default async function StoicsLedgerPage() {
     <>
       <Nav user={user} />
       <main>
+        <Suspense fallback={null}>
         <ToolPageClient
           config={{
             slug: 'stoics-ledger',
@@ -64,6 +66,7 @@ export default async function StoicsLedgerPage() {
             ),
           }}
         />
+        </Suspense>
       </main>
     </>
   );

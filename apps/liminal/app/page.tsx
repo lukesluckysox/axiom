@@ -5,6 +5,7 @@ import { ToolIcon } from '@/components/tool-icon';
 import { OnboardingGuide } from '@/components/onboarding-guide';
 import { InquirySeedsSection } from '@/components/inquiry-seeds-section';
 import { LoopOnboarding } from '@/components/loop-onboarding';
+import { SmartInput } from '@/components/smart-input';
 import { getSession } from '@/lib/auth/session';
 import { query, queryOne } from '@/lib/db';
 import { computeStreak, getRecentDays } from '@/lib/user-progress';
@@ -337,6 +338,9 @@ export default async function Home() {
         </header>
 
         <hr className="page-rule" style={{ margin: '0 0 clamp(2rem, 4vw, 3rem)' }} />
+
+        {/* ── Smart input — route to the right tool ────────────────── */}
+        {user && <SmartInput />}
 
         {/* ── Six instruments ───────────────────────────────────────── */}
         <section aria-label="The six instruments">

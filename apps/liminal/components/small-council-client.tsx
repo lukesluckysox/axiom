@@ -162,12 +162,15 @@ export function SmallCouncilClient() {
   const [formError, setFormError] = useState('');
   const [seedBannerVisible, setSeedBannerVisible] = useState(false);
 
-  // Pre-fill from ?seed= param on mount
+  // Pre-fill from ?seed= or ?claim= param on mount
   useEffect(() => {
     const seedParam = searchParams.get('seed');
+    const claimParam = searchParams.get('claim');
     if (seedParam) {
       setInput(decodeURIComponent(seedParam));
       setSeedBannerVisible(true);
+    } else if (claimParam) {
+      setInput(decodeURIComponent(claimParam));
     }
   }, [searchParams]);
 
@@ -247,6 +250,13 @@ export function SmallCouncilClient() {
           // Increment session counter for Loop onboarding
           const prev = parseInt(localStorage.getItem('liminal_sessions_completed') ?? '0', 10);
           localStorage.setItem('liminal_sessions_completed', String(prev + 1));
+          // Track tool usage for dynamic bottom nav
+          try {
+            const stored = localStorage.getItem('liminal_recent_tools');
+            const recent: string[] = stored ? JSON.parse(stored) : [];
+            const updated = ['small-council', ...recent.filter((s) => s !== 'small-council')].slice(0, 10);
+            localStorage.setItem('liminal_recent_tools', JSON.stringify(updated));
+          } catch { /* ignore */ }
           // Short pause so the user sees the synthesis + downstream, then auto-navigate
           setTimeout(() => {
             router.push(`/session/${sid}`);

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 import { Nav } from '@/components/nav';
 import { ToolPageClient } from '@/components/tool-page-client';
 import { getSession } from '@/lib/auth/session';
@@ -18,6 +19,7 @@ export default async function FoolPage() {
     <>
       <Nav user={user} />
       <main>
+        <Suspense fallback={null}>
         <ToolPageClient
           config={{
             slug: 'fool',
@@ -67,6 +69,7 @@ export default async function FoolPage() {
             ),
           }}
         />
+        </Suspense>
       </main>
     </>
   );

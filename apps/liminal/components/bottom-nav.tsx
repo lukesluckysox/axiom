@@ -1,20 +1,71 @@
 'use client';
 
+import { useState, useEffect, type ComponentType } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Sparkles, Users, TreePine, BookOpen, CircleDot } from 'lucide-react';
+import {
+  Home, Sparkles, Users, TreePine, BookOpen, CircleDot,
+  MessageSquare, Eye, Scale,
+} from 'lucide-react';
+import type { LucideProps } from 'lucide-react';
 
 const LUMEN_HUB_URL = 'https://lumen-os.up.railway.app';
 
-const NAV_ITEMS = [
-  { href: '/tool/fool', label: 'Fool', Icon: Sparkles },
-  { href: '/tool/small-council', label: 'Council', Icon: Users },
-  { href: '/tool/genealogist', label: 'Genealogist', Icon: TreePine },
-  { href: '/archive', label: 'Archive', Icon: BookOpen },
-] as const;
+const TOOL_NAV_MAP: Record<string, { label: string; Icon: ComponentType<LucideProps>; href: string }> = {
+  'fool':          { label: 'Fool',        Icon: Sparkles,    href: '/tool/fool' },
+  'small-council': { label: 'Council',     Icon: Users,       href: '/tool/small-council' },
+  'genealogist':   { label: 'Genealogist', Icon: TreePine,    href: '/tool/genealogist' },
+  'interlocutor':  { label: 'Interlocutor', Icon: MessageSquare, href: '/tool/interlocutor' },
+  'interpreter':   { label: 'Interpreter', Icon: Eye,         href: '/tool/interpreter' },
+  'stoics-ledger': { label: 'Ledger',      Icon: Scale,       href: '/tool/stoics-ledger' },
+};
+
+const DEFAULT_SLUGS = ['fool', 'small-council', 'genealogist'];
+
+const ARCHIVE_ITEM = { label: 'Archive', Icon: BookOpen, href: '/archive' };
+
+function getRecentToolSlugs(): string[] {
+  try {
+    const stored = localStorage.getItem('liminal_recent_tools');
+    if (stored) {
+      const parsed: string[] = JSON.parse(stored);
+      const valid = parsed.filter((s) => s in TOOL_NAV_MAP);
+      // Deduplicate
+      const unique = Array.from(new Set(valid));
+      if (unique.length >= 3) return unique.slice(0, 3);
+      // Pad with defaults
+      const padded = [...unique];
+      for (const d of DEFAULT_SLUGS) {
+        if (padded.length >= 3) break;
+        if (!padded.includes(d)) padded.push(d);
+      }
+      return padded.slice(0, 3);
+    }
+  } catch { /* ignore */ }
+  return DEFAULT_SLUGS;
+}
 
 export function BottomNav() {
   const pathname = usePathname();
+  const [toolSlugs, setToolSlugs] = useState(DEFAULT_SLUGS);
+
+  useEffect(() => {
+    setToolSlugs(getRecentToolSlugs());
+
+    // Re-read when other tabs/components update localStorage
+    function handleStorage(e: StorageEvent) {
+      if (e.key === 'liminal_recent_tools') {
+        setToolSlugs(getRecentToolSlugs());
+      }
+    }
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
+
+  const navItems = [
+    ...toolSlugs.map((slug) => TOOL_NAV_MAP[slug]).filter(Boolean),
+    ARCHIVE_ITEM,
+  ];
 
   return (
     <nav
@@ -83,7 +134,7 @@ export function BottomNav() {
         </Link>
       </div>
 
-      {/* Bottom row: 4 internal pages */}
+      {/* Bottom row: 3 recent tools + Archive */}
       <div
         style={{
           maxWidth: '640px',
@@ -94,7 +145,7 @@ export function BottomNav() {
           alignItems: 'stretch',
         }}
       >
-        {NAV_ITEMS.map(({ href, label, Icon }) => {
+        {navItems.map(({ href, label, Icon }) => {
           const isActive = pathname === href || pathname.startsWith(href + '/');
           return (
             <Link
