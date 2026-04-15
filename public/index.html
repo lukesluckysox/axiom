@@ -3071,10 +3071,6 @@
       border-top: 1px solid rgba(255, 209, 102, 0.1);
       padding-bottom: env(safe-area-inset-bottom, 0px);
     }
-    @media (max-width: 768px) {
-      .bottom-nav { display: block; }
-      body { padding-bottom: 5rem; }
-    }
     .bottom-nav__inner {
       max-width: 480px;
       margin: 0 auto;
@@ -3128,6 +3124,12 @@
       letter-spacing: 0.04em;
       line-height: 1;
       font-weight: 400;
+    }
+
+    /* ── Mobile bottom nav visibility (last rule wins cascade) ── */
+    @media screen and (max-width: 768px) {
+      .bottom-nav { display: block !important; }
+      body { padding-bottom: 5rem; }
     }
 
   </style>
