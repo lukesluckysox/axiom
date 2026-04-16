@@ -3073,9 +3073,7 @@
       transform: none !important;
       pointer-events: auto !important;
     }
-    @media screen and (min-width: 769px) {
-      .bottom-nav { display: none !important; visibility: hidden !important; }
-    }
+    /* Bottom nav always visible — no desktop hide */
     .bottom-nav__inner {
       max-width: 480px;
       margin: 0 auto;
@@ -3112,10 +3110,8 @@
       font-weight: 500;
     }
 
-    /* Mobile body padding for bottom nav */
-    @media screen and (max-width: 768px) {
-      body { padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 16px)) !important; }
-    }
+    /* Body padding for bottom nav — always applied */
+    body { padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 16px)) !important; }
 
   </style>
 </head>
