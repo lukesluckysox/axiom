@@ -4758,11 +4758,17 @@ async function setSensitivity(val) {
     ctx.beginPath(); ctx.arc(CX, CY, SUN_R * 0.55, 0, Math.PI * 2);
     ctx.strokeStyle = 'rgba(255,209,102,0.12)'; ctx.lineWidth = 0.5; ctx.stroke();
 
-    /* alignment score (0-100) */
+    /* alignment score (0-100) — ratio of totalFed / totalTarget */
+    var _totalFed = 0, _totalTarget = 0;
+    for (var _i = 0; _i < dims.length; _i++) {
+      _totalFed += dims[_i].fed || 0;
+      _totalTarget += dims[_i].target || 0;
+    }
+    var _ratioPct = _totalTarget > 0 ? Math.min(100, Math.round((_totalFed / _totalTarget) * 100)) : 0;
     ctx.font = '300 48px Cormorant, serif';
     ctx.fillStyle = GOLD;
     ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
-    ctx.fillText(state.alignment, CX, CY + 4);
+    ctx.fillText(_ratioPct, CX, CY + 4);
 
     ctx.font = '500 11px Satoshi, sans-serif';
     ctx.fillStyle = 'rgba(255,209,102,0.45)';
@@ -5119,7 +5125,7 @@ async function setSensitivity(val) {
     pct = Math.min(100, pct);
 
     var pctEl = document.getElementById('sundial-pct-val');
-    if (pctEl) pctEl.textContent = alignment || pct;
+    if (pctEl) pctEl.textContent = pct;
 
     var tallyEl = document.getElementById('sundial-tally');
     if (tallyEl) {
