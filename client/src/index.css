@@ -3,8 +3,33 @@
 @tailwind utilities;
 
 @layer base {
+  /* ─────────────────────────────────────────────
+     TOKENS
+  ───────────────────────────────────────────── */
   :root {
-    /* Lumen dark palette */
+    --text-xs:   clamp(0.75rem,  0.7rem  + 0.25vw, 0.875rem);
+    --text-sm:   clamp(0.875rem, 0.8rem  + 0.35vw, 1rem);
+    --text-base: clamp(1rem,     0.95rem + 0.25vw, 1.125rem);
+    --text-lg:   clamp(1.125rem, 1rem    + 0.75vw, 1.5rem);
+    --text-xl:   clamp(1.5rem,   1.2rem  + 1.25vw, 2.25rem);
+    --text-2xl:  clamp(2rem,     1.2rem  + 2.5vw,  3.5rem);
+    --text-3xl:  clamp(2.5rem,   1rem    + 4vw,    5rem);
+
+    --sp-1: .25rem;  --sp-2: .5rem;   --sp-3: .75rem;
+    --sp-4: 1rem;    --sp-5: 1.25rem; --sp-6: 1.5rem;
+    --sp-8: 2rem;    --sp-10: 2.5rem; --sp-12: 3rem;
+    --sp-16: 4rem;   --sp-20: 5rem;   --sp-24: 6rem;
+    --sp-32: 8rem;
+
+    --r-sm: .25rem; --r-md: .375rem; --r-lg: .625rem;
+    --ease: cubic-bezier(.16,1,.3,1);
+    --t: 220ms var(--ease);
+
+    --font-sans: 'Satoshi', 'Inter', system-ui, sans-serif;
+    --font-serif: 'Cormorant', 'Georgia', serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+    /* Tailwind custom color tokens (HSL) */
     --background: 228 24% 13%;
     --foreground: 228 15% 96%;
     --card: 230 22% 17%;
@@ -25,23 +50,371 @@
     --border: 228 12% 18%;
     --input: 228 12% 22%;
     --ring: 43 100% 70%;
+  }
 
-    --font-sans: 'Satoshi', 'Inter', system-ui, sans-serif;
-    --font-serif: 'Cormorant', 'Georgia', serif;
-    --font-mono: 'JetBrains Mono', ui-monospace, monospace;
-
-    --gold: #FFD166;
-    --gold-dim: rgba(255,209,102,.08);
-    --gold-glow: rgba(255,209,102,.035);
-    --surface: #1f2237;
+  /* ─────────────────────────────────────────────
+     LUMEN DARK (default)
+  ───────────────────────────────────────────── */
+  :root, [data-theme="dark"] {
+    --bg:        #191b2a;
+    --surface:   #1f2237;
     --surface-2: #252944;
+    --surface-3: #2B2D42;
+
+    --border-raw:    rgba(141,153,174,.09);
+    --border-md: rgba(141,153,174,.17);
+    --border-lg: rgba(141,153,174,.27);
+    --divider:   rgba(141,153,174,.055);
+
+    --text:      #F4F5F8;
+    --muted-raw: #8D99AE;
+    --faint:     rgba(141,153,174,.4);
+
+    --gold:      #FFD166;
+    --gold-dim:  rgba(255,209,102,.08);
+    --gold-glow: rgba(255,209,102,.035);
+
+    --sh-sm:  0 1px 4px  rgba(0,0,0,.35);
+    --sh-md:  0 4px 20px rgba(0,0,0,.45);
+    --sh-lg:  0 20px 60px rgba(0,0,0,.55);
+  }
+
+  /* ─────────────────────────────────────────────
+     LUMEN LIGHT
+  ───────────────────────────────────────────── */
+  [data-theme="light"] {
+    --bg:        #F1F2F6;
+    --surface:   #FFFFFF;
+    --surface-2: #F7F8FB;
+    --surface-3: #EBEBF3;
+
+    --border-raw:    rgba(43,45,66,.07);
+    --border-md: rgba(43,45,66,.13);
+    --border-lg: rgba(43,45,66,.21);
+    --divider:   rgba(43,45,66,.045);
+
+    --text:      #18192b;
+    --muted-raw: #5c657a;
+    --faint:     rgba(92,101,122,.45);
+
+    --gold:      #a87200;
+    --gold-dim:  rgba(168,114,0,.07);
+    --gold-glow: rgba(168,114,0,.03);
+
+    --sh-sm:  0 1px 4px  rgba(43,45,66,.07);
+    --sh-md:  0 4px 20px rgba(43,45,66,.10);
+    --sh-lg:  0 20px 60px rgba(43,45,66,.14);
+
+    /* Override Tailwind tokens for light theme */
+    --background: 233 18% 96%;
+    --foreground: 234 40% 13%;
+    --card: 0 0% 100%;
+    --card-foreground: 234 40% 13%;
+    --card-border: 234 12% 88%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 234 40% 13%;
+    --secondary: 233 18% 92%;
+    --secondary-foreground: 234 20% 35%;
+    --muted: 233 15% 88%;
+    --muted-foreground: 233 10% 42%;
+    --border: 234 12% 88%;
+    --input: 234 12% 88%;
+  }
+
+  /* ─────────────────────────────────────────────
+     PALETTES
+     Each palette overrides the base dark/light vars.
+     data-palette="lumen" (or absent) = default.
+  ───────────────────────────────────────────── */
+
+  /* ── Liminal (editorial/antiquarian — warm tarnished) ── */
+  [data-palette="liminal"][data-theme="dark"],
+  [data-palette="liminal"]:not([data-theme="light"]) {
+    --bg:        #140e0e;
+    --surface:   #1a1712;
+    --surface-2: #211e18;
+    --surface-3: #2b2620;
+
+    --border-raw:    rgba(138,130,118,.09);
+    --border-md: rgba(138,130,118,.17);
+    --border-lg: rgba(138,130,118,.27);
+    --divider:   rgba(138,130,118,.055);
+
+    --text:      #dad4c8;
+    --muted-raw: #8a8276;
+    --faint:     rgba(138,130,118,.4);
+
+    --gold:      #9c8654;
+    --gold-dim:  rgba(156,134,84,.10);
+    --gold-glow: rgba(156,134,84,.04);
+
+    --sh-sm:  0 1px 4px  rgba(0,0,0,.40);
+    --sh-md:  0 4px 20px rgba(0,0,0,.50);
+    --sh-lg:  0 20px 60px rgba(0,0,0,.60);
+  }
+  [data-palette="liminal"][data-theme="light"] {
+    --bg:        #f2ede4;
+    --surface:   #faf7f2;
+    --surface-2: #f5f1ea;
+    --surface-3: #ebe5da;
+
+    --border-raw:    rgba(43,37,24,.07);
+    --border-md: rgba(43,37,24,.13);
+    --border-lg: rgba(43,37,24,.21);
+    --divider:   rgba(43,37,24,.045);
+
+    --text:      #2b2518;
+    --muted-raw: #6a6050;
+    --faint:     rgba(106,96,80,.45);
+
+    --gold:      #8a7540;
+    --gold-dim:  rgba(138,117,64,.08);
+    --gold-glow: rgba(138,117,64,.03);
+
+    --sh-sm:  0 1px 4px  rgba(43,37,24,.07);
+    --sh-md:  0 4px 20px rgba(43,37,24,.10);
+    --sh-lg:  0 20px 60px rgba(43,37,24,.14);
+  }
+
+  /* ── Parallax (cool steel/teal — psychological observation) ── */
+  [data-palette="parallax"][data-theme="dark"],
+  [data-palette="parallax"]:not([data-theme="light"]) {
+    --bg:        #0d1117;
+    --surface:   #141a22;
+    --surface-2: #1a2230;
+    --surface-3: #202b3a;
+
+    --border-raw:    rgba(107,122,141,.09);
+    --border-md: rgba(107,122,141,.17);
+    --border-lg: rgba(107,122,141,.27);
+    --divider:   rgba(107,122,141,.055);
+
+    --text:      #bfc8d4;
+    --muted-raw: #6b7a8d;
+    --faint:     rgba(107,122,141,.4);
+
+    --gold:      #4d8c9e;
+    --gold-dim:  rgba(77,140,158,.10);
+    --gold-glow: rgba(77,140,158,.04);
+
+    --sh-sm:  0 1px 4px  rgba(0,0,0,.40);
+    --sh-md:  0 4px 20px rgba(0,0,0,.50);
+    --sh-lg:  0 20px 60px rgba(0,0,0,.60);
+  }
+  [data-palette="parallax"][data-theme="light"] {
+    --bg:        #f3f5f8;
+    --surface:   #ffffff;
+    --surface-2: #f5f7fa;
+    --surface-3: #e8ecf2;
+
+    --border-raw:    rgba(26,37,53,.07);
+    --border-md: rgba(26,37,53,.13);
+    --border-lg: rgba(26,37,53,.21);
+    --divider:   rgba(26,37,53,.045);
+
+    --text:      #1a2535;
+    --muted-raw: #5a6a7d;
+    --faint:     rgba(90,106,125,.45);
+
+    --gold:      #2f6b7d;
+    --gold-dim:  rgba(47,107,125,.08);
+    --gold-glow: rgba(47,107,125,.03);
+
+    --sh-sm:  0 1px 4px  rgba(26,37,53,.07);
+    --sh-md:  0 4px 20px rgba(26,37,53,.10);
+    --sh-lg:  0 20px 60px rgba(26,37,53,.14);
+  }
+
+  /* ── Praxis (warm amber/earth — laboratory of the self) ── */
+  [data-palette="praxis"][data-theme="dark"],
+  [data-palette="praxis"]:not([data-theme="light"]) {
+    --bg:        #120f0a;
+    --surface:   #1a1510;
+    --surface-2: #221c14;
+    --surface-3: #2b2418;
+
+    --border-raw:    rgba(138,125,109,.09);
+    --border-md: rgba(138,125,109,.17);
+    --border-lg: rgba(138,125,109,.27);
+    --divider:   rgba(138,125,109,.055);
+
+    --text:      #d8d0c4;
+    --muted-raw: #8a7d6d;
+    --faint:     rgba(138,125,109,.4);
+
+    --gold:      #c4943e;
+    --gold-dim:  rgba(196,148,62,.10);
+    --gold-glow: rgba(196,148,62,.04);
+
+    --sh-sm:  0 1px 4px  rgba(0,0,0,.40);
+    --sh-md:  0 4px 20px rgba(0,0,0,.50);
+    --sh-lg:  0 20px 60px rgba(0,0,0,.60);
+  }
+  [data-palette="praxis"][data-theme="light"] {
+    --bg:        #f5f0e6;
+    --surface:   #fcf9f4;
+    --surface-2: #f7f3eb;
+    --surface-3: #ede6d8;
+
+    --border-raw:    rgba(34,28,18,.07);
+    --border-md: rgba(34,28,18,.13);
+    --border-lg: rgba(34,28,18,.21);
+    --divider:   rgba(34,28,18,.045);
+
+    --text:      #221c12;
+    --muted-raw: #6d6050;
+    --faint:     rgba(109,96,80,.45);
+
+    --gold:      #9a7530;
+    --gold-dim:  rgba(154,117,48,.08);
+    --gold-glow: rgba(154,117,48,.03);
+
+    --sh-sm:  0 1px 4px  rgba(34,28,18,.07);
+    --sh-md:  0 4px 20px rgba(34,28,18,.10);
+    --sh-lg:  0 20px 60px rgba(34,28,18,.14);
+  }
+
+  /* ── Axiom (deep constitutional blue — truth and structure) ── */
+  [data-palette="axiom"][data-theme="dark"],
+  [data-palette="axiom"]:not([data-theme="light"]) {
+    --bg:        #0b0f18;
+    --surface:   #111723;
+    --surface-2: #161e2e;
+    --surface-3: #1c2638;
+
+    --border-raw:    rgba(96,112,136,.09);
+    --border-md: rgba(96,112,136,.17);
+    --border-lg: rgba(96,112,136,.27);
+    --divider:   rgba(96,112,136,.055);
+
+    --text:      #c4cdd8;
+    --muted-raw: #607088;
+    --faint:     rgba(96,112,136,.4);
+
+    --gold:      #3d7bba;
+    --gold-dim:  rgba(61,123,186,.10);
+    --gold-glow: rgba(61,123,186,.04);
+
+    --sh-sm:  0 1px 4px  rgba(0,0,0,.40);
+    --sh-md:  0 4px 20px rgba(0,0,0,.50);
+    --sh-lg:  0 20px 60px rgba(0,0,0,.60);
+  }
+  [data-palette="axiom"][data-theme="light"] {
+    --bg:        #f0f2f6;
+    --surface:   #ffffff;
+    --surface-2: #f4f6fa;
+    --surface-3: #e4e8f0;
+
+    --border-raw:    rgba(20,28,43,.07);
+    --border-md: rgba(20,28,43,.13);
+    --border-lg: rgba(20,28,43,.21);
+    --divider:   rgba(20,28,43,.045);
+
+    --text:      #141c2b;
+    --muted-raw: #4a5a72;
+    --faint:     rgba(74,90,114,.45);
+
+    --gold:      #2d609a;
+    --gold-dim:  rgba(45,96,154,.08);
+    --gold-glow: rgba(45,96,154,.03);
+
+    --sh-sm:  0 1px 4px  rgba(20,28,43,.07);
+    --sh-md:  0 4px 20px rgba(20,28,43,.10);
+    --sh-lg:  0 20px 60px rgba(20,28,43,.14);
+  }
+
+  /* ─────────────────────────────────────────────
+     SCROLL REVEAL
+  ───────────────────────────────────────────── */
+  .up {
+    opacity: 0;
+    transform: translateY(18px);
+    transition:
+      opacity  .75s var(--ease),
+      transform .75s var(--ease);
+  }
+  .up.in { opacity: 1; transform: translateY(0); }
+  .up.d1 { transition-delay: .08s; }
+  .up.d2 { transition-delay: .16s; }
+  .up.d3 { transition-delay: .24s; }
+  .up.d4 { transition-delay: .32s; }
+
+  /* ─────────────────────────────────────────────
+     GLOBAL TRANSITIONS
+  ───────────────────────────────────────────── */
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    transition: background .35s var(--ease), color .35s var(--ease);
   }
 
   * {
     @apply border-border;
   }
 
-  body {
-    @apply bg-background text-foreground font-sans antialiased;
+  /* ─────────────────────────────────────────────
+     SELECTION
+  ───────────────────────────────────────────── */
+  ::selection { background: rgba(255,209,102,.16); color: var(--text); }
+
+  /* ─────────────────────────────────────────────
+     PALETTE DOTS (used in nav)
+  ───────────────────────────────────────────── */
+  .palette-dot {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    border: 1.5px solid transparent;
+    cursor: pointer;
+    flex-shrink: 0;
+    padding: 0;
+    display: inline-block;
+    box-sizing: border-box;
+    transition: transform .15s var(--ease), box-shadow .15s var(--ease), border-color .15s var(--ease);
+    position: relative;
+  }
+  .palette-dot:hover { transform: scale(1.2); }
+  .palette-dot.active {
+    border-color: var(--text);
+    box-shadow: 0 0 0 2px var(--bg), 0 0 0 3.5px var(--text);
+  }
+
+  /* Tooltip on palette dots */
+  .palette-dot::after {
+    content: attr(data-name);
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--surface-3);
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-size: 10px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    padding: 3px 7px;
+    border-radius: var(--r-sm);
+    border: 1px solid var(--border-md);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity .15s var(--ease);
+    z-index: 200;
+  }
+  .palette-dot:hover::after { opacity: 1; }
+
+  /* ─────────────────────────────────────────────
+     SCREEN READER ONLY
+  ───────────────────────────────────────────── */
+  .sr-only {
+    position: absolute; width: 1px; height: 1px;
+    padding: 0; margin: -1px; overflow: hidden;
+    clip: rect(0,0,0,0); white-space: nowrap; border-width: 0;
+  }
+}
+
+/* ─── Reduced motion ─── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    transition-duration: .01ms !important;
   }
 }
