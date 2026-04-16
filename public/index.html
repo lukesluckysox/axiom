@@ -3085,9 +3085,9 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 2px;
-      padding: 0.5rem;
-      min-height: 44px;
+      gap: 4px;
+      padding: 10px 8px;
+      min-height: 56px;
       text-decoration: none;
       color: rgba(255, 209, 102, 0.40);
       transition: color 0.15s ease;
@@ -3098,19 +3098,22 @@
       color: rgba(255, 209, 102, 0.95);
     }
     .bottom-nav__item svg {
-      width: 18px; height: 18px;
+      width: 22px !important;
+      height: 22px !important;
+      min-width: 22px !important;
+      min-height: 22px !important;
       flex-shrink: 0;
     }
     .bottom-nav__label {
       font-family: 'Satoshi', ui-monospace, monospace;
-      font-size: 10px;
+      font-size: 11px;
       letter-spacing: 0.04em;
       line-height: 1;
       font-weight: 500;
     }
 
     /* Body padding for bottom nav — always applied */
-    body { padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 16px)) !important; }
+    body { padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 16px)) !important; }
 
   </style>
 </head>
