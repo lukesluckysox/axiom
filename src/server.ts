@@ -1,6 +1,7 @@
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import path from 'path';
+import fs from 'fs';
 import { authRouter } from './routes/auth';
 import { epistemicRouter } from './routes/epistemic/index';
 import { loopRouter } from './routes/loop';
@@ -20,7 +21,6 @@ app.use(cookieParser());
 // ─── Static assets ───────────────────────────────────────────────────────────
 // In production, serve the Vite build output from dist/public
 // Also serve the legacy public/ folder for favicon, manifest, etc.
-const fs = require('fs');
 const clientBuildPath = path.join(__dirname, 'public'); // dist/public after build
 const legacyPublicPath = path.join(__dirname, '..', 'public');
 
@@ -50,9 +50,8 @@ app.use('/api/oracle', oracleRouter);
 app.get('/api/health', (_, res) => {
   const volPath = process.env.RAILWAY_VOLUME_MOUNT_PATH;
   const dbFile = volPath ? `${volPath}/lumen.db` : 'lumen.db (ephemeral)';
-  const fs = require('fs');
-  const dbExists = fs.existsSync(volPath ? `${volPath}/lumen.db` : require('path').resolve(process.cwd(), 'lumen.db'));
-  const dbSize = dbExists ? (fs.statSync(volPath ? `${volPath}/lumen.db` : require('path').resolve(process.cwd(), 'lumen.db')).size / 1024).toFixed(1) + ' KB' : 'N/A';
+  const dbExists = fs.existsSync(volPath ? `${volPath}/lumen.db` : path.resolve(process.cwd(), 'lumen.db'));
+  const dbSize = dbExists ? (fs.statSync(volPath ? `${volPath}/lumen.db` : path.resolve(process.cwd(), 'lumen.db')).size / 1024).toFixed(1) + ' KB' : 'N/A';
   res.json({
     ok: true,
     service: 'lumen',

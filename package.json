@@ -2,7 +2,6 @@
   "name": "lumen",
   "version": "2.0.0",
   "description": "Lumen — An Operating System for the Examined Life",
-  "type": "module",
   "scripts": {
     "dev": "concurrently \"tsx watch src/server.ts\" \"vite --host\"",
     "dev:server": "tsx watch src/server.ts",
