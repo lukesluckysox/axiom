@@ -18,10 +18,16 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
 // ─── Static assets ───────────────────────────────────────────────────────────
-// index.html must always revalidate so users never see stale SPA shells.
-// Other static assets (CSS, JS, images) can cache normally.
-app.use(express.static(path.join(__dirname, '..', 'public'), {
-  setHeaders(res, filePath) {
+// In production, serve the Vite build output from dist/public
+// Also serve the legacy public/ folder for favicon, manifest, etc.
+const fs = require('fs');
+const clientBuildPath = path.join(__dirname, 'public'); // dist/public after build
+const legacyPublicPath = path.join(__dirname, '..', 'public');
+
+const staticPath = fs.existsSync(clientBuildPath) ? clientBuildPath : legacyPublicPath;
+
+app.use(express.static(staticPath, {
+  setHeaders(res: any, filePath: string) {
     if (filePath.endsWith('index.html') || filePath.endsWith('.html')) {
       res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
       res.setHeader('Pragma', 'no-cache');
@@ -29,6 +35,10 @@ app.use(express.static(path.join(__dirname, '..', 'public'), {
     }
   },
 }));
+// Also serve legacy public assets (favicon, manifest, etc.)
+if (staticPath !== legacyPublicPath && fs.existsSync(legacyPublicPath)) {
+  app.use(express.static(legacyPublicPath));
+}
 
 // ─── API ─────────────────────────────────────────────────────────────────────
 app.use('/api/auth', authRouter);
@@ -56,12 +66,17 @@ app.get('/api/health', (_, res) => {
   });
 });
 
-// ─── Fallback — serve the shell for all non-API routes ───────────────────────
+// ─── Fallback — serve the React SPA shell for all non-API routes ─────────────
 app.get('*', (req, res) => {
   res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
   res.setHeader('Pragma', 'no-cache');
   res.setHeader('Expires', '0');
-  res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
+  const indexPath = path.join(staticPath, 'index.html');
+  if (fs.existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    res.sendFile(path.join(legacyPublicPath, 'index.html'));
+  }
 });
 
 // ─── Start ───────────────────────────────────────────────────────────────────

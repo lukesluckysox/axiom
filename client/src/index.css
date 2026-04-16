@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Lumen dark palette */
+    --background: 228 24% 13%;
+    --foreground: 228 15% 96%;
+    --card: 230 22% 17%;
+    --card-foreground: 228 15% 96%;
+    --card-border: 228 12% 22%;
+    --popover: 230 22% 17%;
+    --popover-foreground: 228 15% 96%;
+    --primary: 43 100% 70%;
+    --primary-foreground: 228 24% 13%;
+    --secondary: 228 20% 22%;
+    --secondary-foreground: 228 15% 80%;
+    --muted: 228 15% 30%;
+    --muted-foreground: 228 10% 55%;
+    --accent: 43 100% 70%;
+    --accent-foreground: 228 24% 13%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 228 12% 18%;
+    --input: 228 12% 22%;
+    --ring: 43 100% 70%;
+
+    --font-sans: 'Satoshi', 'Inter', system-ui, sans-serif;
+    --font-serif: 'Cormorant', 'Georgia', serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+    --gold: #FFD166;
+    --gold-dim: rgba(255,209,102,.08);
+    --gold-glow: rgba(255,209,102,.035);
+    --surface: #1f2237;
+    --surface-2: #252944;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+}
