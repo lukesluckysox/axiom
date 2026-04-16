@@ -190,7 +190,7 @@ export default function ProfilePanel({ open, onClose, onLogout }: Props) {
                 <>
                   <div className="oracle-tabs">
                     {APPS.map((app) => {
-                      const status = app === "lumen" ? "online" : (oracleData.subAppStatus[app] || "offline");
+                      const status = app === "lumen" ? "online" : (oracleData.subAppStatus?.[app] || "offline");
                       return (
                         <button key={app} onClick={() => setOracleTab(app)}
                           className={`oracle-tab ${oracleTab === app ? "oracle-tab--active" : ""}`}>
@@ -203,9 +203,10 @@ export default function ProfilePanel({ open, onClose, onLogout }: Props) {
 
                   {oracleRows.length === 0 ? (
                     <p className="oracle-empty">
-                      {oracleTab !== "lumen" && oracleData.subAppStatus[oracleTab] === "offline"
+                      {oracleTab !== "lumen" && oracleData.subAppStatus?.[oracleTab] === "offline"
                         ? "Service offline — unable to fetch users."
                         : "No registered users."}
+
                     </p>
                   ) : (
                     <>

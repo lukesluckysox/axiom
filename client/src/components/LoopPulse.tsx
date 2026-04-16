@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 interface PulseDay {
   date: string;
   count: number;
-  tools: {
+  tools?: {
     liminal: number;
     parallax: number;
     praxis: number;
@@ -11,14 +11,22 @@ interface PulseDay {
   };
 }
 
+interface ToolBreakdown {
+  liminal: number;
+  parallax: number;
+  praxis: number;
+  axiom: number;
+}
+
+/** The API returns { totalEvents, byApp, byDay } but the component
+ *  historically expected { days, toolBreakdown }. We normalise both shapes. */
 interface PulseData {
-  days: PulseDay[];
-  toolBreakdown: {
-    liminal: number;
-    parallax: number;
-    praxis: number;
-    axiom: number;
-  };
+  days?: PulseDay[];
+  toolBreakdown?: ToolBreakdown;
+  // API shape
+  byDay?: { date: string; count: number }[];
+  byApp?: ToolBreakdown;
+  totalEvents?: number;
 }
 
 interface LoopPulseProps {
@@ -62,8 +70,15 @@ export default function LoopPulse({ data: propData }: LoopPulseProps) {
     enabled: !propData,
   });
 
-  const data = propData ?? fetchedData;
-  const totalReflections = data ? Object.values(data.toolBreakdown).reduce((a, b) => a + b, 0) : 0;
+  const raw = propData ?? fetchedData;
+
+  // Normalise API response: server returns { byApp, byDay } but component uses { toolBreakdown, days }
+  const data = raw ? {
+    toolBreakdown: raw.toolBreakdown ?? raw.byApp ?? { liminal: 0, parallax: 0, praxis: 0, axiom: 0 },
+    days: raw.days ?? (raw.byDay || []).map((d) => ({ date: d.date, count: d.count })),
+  } : null;
+
+  const totalReflections = data ? Object.values(data.toolBreakdown || {}).reduce((a: number, b: number) => a + b, 0) : 0;
 
   return (
     <section className="pulse-band up" aria-label="Loop activity pulse">
@@ -81,7 +96,7 @@ export default function LoopPulse({ data: propData }: LoopPulseProps) {
                   {(["liminal", "parallax", "praxis", "axiom"] as const).map((tool) => (
                     <span key={tool} className="pulse-badge">
                       <span className={`pulse-badge__dot pulse-badge__dot--${tool}`} />
-                      {tool} {data.toolBreakdown[tool]}
+                      {tool} {data.toolBreakdown?.[tool] ?? 0}
                     </span>
                   ))}
                 </div>
@@ -94,7 +109,7 @@ export default function LoopPulse({ data: propData }: LoopPulseProps) {
           {data && (
             <div className="pulse-chart">
               <div className="pulse-dots" aria-label="Seven-day activity sparkline">
-                {data.days.map((day, i) => {
+                {(data.days || []).map((day, i) => {
                   const active = day.count > 0;
                   const size = active ? Math.max(6, Math.min(14, day.count * 3 + 4)) : 6;
                   return (

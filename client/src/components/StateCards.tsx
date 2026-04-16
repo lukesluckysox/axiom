@@ -15,7 +15,15 @@ export default function StateCards() {
     fetch("/api/loop/state", { credentials: "same-origin" })
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
-        if (d) setCounts(d);
+        if (!d) return;
+        // API returns { axiomCount, tensionCount, experimentCount, pendingCount }
+        // Normalise to the keys the cards expect: axiom, tension, experiment, pending
+        setCounts({
+          axiom: String(d.axiomCount ?? d.axiom ?? "—"),
+          tension: String(d.tensionCount ?? d.tension ?? "—"),
+          experiment: String(d.experimentCount ?? d.experiment ?? "—"),
+          pending: String(d.pendingCount ?? d.pending ?? "—"),
+        });
       })
       .catch(() => {});
   }, []);

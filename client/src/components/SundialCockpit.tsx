@@ -238,7 +238,7 @@ export default function SundialCockpit() {
   // Merged state (API + local target overrides)
   const mergedState: CockpitState = {
     ...state,
-    dimensions: state.dimensions.map((d) => ({
+    dimensions: (state.dimensions || FALLBACK.dimensions).map((d) => ({
       ...d,
       target: localTargets[d.name] !== undefined ? localTargets[d.name] : d.target,
     })),
@@ -396,7 +396,7 @@ export default function SundialCockpit() {
           {/* Sources */}
           <div className="cockpit-sources" id="cockpit-sources">
             {Object.entries(sourceNames).map(([k, v]) => (
-              <span key={k} className={state.sources[k] ? "src-on" : ""}>
+              <span key={k} className={state.sources?.[k] ? "src-on" : ""}>
                 <span className="src-dot" />
                 {v}
               </span>
