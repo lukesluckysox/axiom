@@ -36,6 +36,12 @@ export default function OnboardingOverlay() {
   const [step, setStep] = useState(0);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  const dismiss = useCallback(() => {
+    localStorage.setItem("lumen_onboarding_complete", "true");
+    setVisible(false);
+    if (pollRef.current) clearInterval(pollRef.current);
+  }, []);
+
   const checkAndShow = useCallback(async () => {
     if (localStorage.getItem("lumen_onboarding_complete")) return;
     try {
@@ -46,7 +52,6 @@ export default function OnboardingOverlay() {
       if (s < 4) {
         setStep(s);
         setVisible(true);
-        // Start polling
         pollRef.current = setInterval(async () => {
           try {
             const r = await fetch("/api/loop/summary", { credentials: "same-origin" });
@@ -56,13 +61,15 @@ export default function OnboardingOverlay() {
             if (ns > s) setStep(ns);
           } catch {}
         }, 5000);
+      } else {
+        /* User has completed the full loop — mark done automatically */
+        localStorage.setItem("lumen_onboarding_complete", "true");
       }
     } catch {}
   }, []);
 
   useEffect(() => {
-    // Small delay to let the main page load first
-    const t = setTimeout(checkAndShow, 1000);
+    const t = setTimeout(checkAndShow, 1200);
     return () => {
       clearTimeout(t);
       if (pollRef.current) clearInterval(pollRef.current);
@@ -71,24 +78,46 @@ export default function OnboardingOverlay() {
 
   const handleCta = useCallback(() => {
     if (step === 4) {
-      localStorage.setItem("lumen_onboarding_complete", "true");
-      setVisible(false);
-      if (pollRef.current) clearInterval(pollRef.current);
+      dismiss();
       localStorage.setItem("lumen_first_session_completed", "true");
     } else {
       ssoNavigate(APP_URLS[step]);
     }
-  }, [step]);
+  }, [step, dismiss]);
 
   if (!visible) return null;
 
   const s = STEPS[step];
 
+  /* ── Render as a dismissible bottom-anchored card, NOT full-screen blocker ── */
   return (
-    <div id="onboarding-overlay" style={{ display: "flex", position: "fixed", inset: 0, zIndex: 9998, background: "var(--bg)", alignItems: "center", justifyContent: "center" }}>
-      <div id="onboarding-card" style={{ maxWidth: "480px", padding: "2rem", textAlign: "center" }}>
+    <div id="onboarding-overlay" style={{
+      position: "fixed",
+      bottom: "calc(72px + env(safe-area-inset-bottom, 0px))",
+      left: "50%",
+      transform: "translateX(-50%)",
+      zIndex: 9998,
+      width: "calc(100% - 2rem)",
+      maxWidth: "440px",
+      pointerEvents: "auto",
+    }}>
+      <div id="onboarding-card" style={{
+        background: "var(--bg)",
+        border: "1px solid rgba(255,209,102,0.18)",
+        borderRadius: "12px",
+        padding: "1.5rem",
+        textAlign: "center",
+        boxShadow: "0 8px 40px rgba(0,0,0,0.5)",
+      }}>
+        {/* Dismiss / close */}
+        <button onClick={dismiss} aria-label="Dismiss onboarding" style={{
+          position: "absolute", top: "0.6rem", right: "0.8rem",
+          background: "none", border: "none", color: "var(--muted)",
+          fontSize: "18px", cursor: "pointer", opacity: 0.6, lineHeight: 1,
+        }}>&times;</button>
+
         {/* Diamond diagram */}
-        <svg width="200" height="220" viewBox="0 0 200 220" style={{ margin: "0 auto 1.5rem" }}>
+        <svg width="120" height="132" viewBox="0 0 200 220" style={{ margin: "0 auto 1rem", display: "block" }}>
           <path d="M100,15 L185,100 L100,185 L15,100 Z" fill="none" stroke="rgba(255,209,102,0.1)" strokeWidth="1" />
           {NODES.map((n, i) => {
             const isHighlight = s.highlight === i || s.highlight === -1;
@@ -105,10 +134,14 @@ export default function OnboardingOverlay() {
           })}
         </svg>
 
-        <h2 style={{ fontFamily: "var(--font-head)", fontSize: "clamp(1.1rem, 2.5vw, 1.4rem)", fontWeight: 300, color: "var(--text)", marginBottom: "1rem" }}>{s.heading}</h2>
-        <p style={{ fontSize: "var(--text-sm)", color: "var(--muted)", lineHeight: 1.7, marginBottom: "2rem", maxWidth: "38ch", marginInline: "auto" }}>{s.body}</p>
-        <button onClick={handleCta}
-          style={{ fontSize: "var(--text-sm)", fontWeight: 500, letterSpacing: "0.05em", color: "var(--gold)", background: "var(--gold-dim, rgba(255,209,102,0.08))", border: "1px solid rgba(255,209,102,0.2)", borderRadius: "var(--r-sm)", padding: "0.75rem 2rem", cursor: "pointer", transition: "background 0.2s" }}>
+        <h2 style={{ fontFamily: "var(--font-head)", fontSize: "clamp(1rem, 2vw, 1.2rem)", fontWeight: 300, color: "var(--text)", marginBottom: "0.5rem" }}>{s.heading}</h2>
+        <p style={{ fontSize: "var(--text-xs)", color: "var(--muted)", lineHeight: 1.6, marginBottom: "1rem", maxWidth: "34ch", marginInline: "auto" }}>{s.body}</p>
+        <button onClick={handleCta} style={{
+          fontSize: "var(--text-xs)", fontWeight: 500, letterSpacing: "0.05em",
+          color: "var(--gold)", background: "rgba(255,209,102,0.08)",
+          border: "1px solid rgba(255,209,102,0.2)", borderRadius: "6px",
+          padding: "0.6rem 1.5rem", cursor: "pointer", transition: "background 0.2s",
+        }}>
           {s.cta}
         </button>
       </div>
