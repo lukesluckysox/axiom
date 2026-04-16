@@ -867,14 +867,14 @@
       background: var(--border-md);
       border: 1px solid var(--border-md);
     }
-    @media (max-width: 600px) { .tools-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 600px) { .tools-grid { grid-template-columns: 1fr 1fr; } }
 
     .card {
       background: var(--surface);
-      padding: var(--sp-6) var(--sp-8);
+      padding: var(--sp-4) var(--sp-5);
       display: flex;
       flex-direction: column;
-      gap: var(--sp-4);
+      gap: var(--sp-2);
       position: relative;
       overflow: hidden;
       transition: background var(--t);
@@ -925,14 +925,13 @@
       font-size: var(--text-sm);
       color: var(--muted);
       line-height: 1.7;
-      flex: 1;
       max-width: 46ch;
     }
     .card__foot {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding-top: var(--sp-6);
+      padding-top: var(--sp-3);
       border-top: 1px solid var(--divider);
     }
     .card__status {
@@ -2378,9 +2377,9 @@
        MOBILE OPTIMIZATION
     ───────────────────────────────────────────── */
 
-    /* Phone breakpoint: tool cards single column */
+    /* Phone breakpoint: tool cards stay 2-column */
     @media (max-width: 480px) {
-      .tools-grid { grid-template-columns: 1fr; }
+      .tools-grid { grid-template-columns: 1fr 1fr; }
     }
 
     /* KPI state cards: 2x2 on tablet, single on phone */
@@ -2775,7 +2774,7 @@
         padding-block: var(--sp-6);
       }
       .card {
-        padding: var(--sp-5);
+        padding: var(--sp-3);
       }
     }
 
@@ -3061,19 +3060,24 @@
        MOBILE BOTTOM NAV
     ───────────────────────────────────────────── */
     .bottom-nav {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      z-index: 9998;
+      position: fixed !important;
+      bottom: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      z-index: 9998 !important;
       background: rgba(25, 27, 42, 0.97);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
       border-top: 1px solid rgba(255, 209, 102, 0.18);
       padding-bottom: env(safe-area-inset-bottom, 0px);
+      display: block !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+      transform: none !important;
+      pointer-events: auto !important;
     }
     @media screen and (min-width: 769px) {
-      .bottom-nav { display: none !important; }
+      .bottom-nav { display: none !important; visibility: hidden !important; }
     }
     .bottom-nav__inner {
       max-width: 480px;
@@ -3088,11 +3092,11 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 0.35rem;
-      padding: 0.6rem 0.5rem 0.5rem;
-      min-height: 60px;
+      gap: 0.25rem;
+      padding: 0.5rem 0.5rem 0.4rem;
+      min-height: 52px;
       text-decoration: none;
-      color: rgba(255, 209, 102, 0.7);
+      color: rgba(255, 209, 102, 0.45);
       transition: color 0.15s ease, opacity 0.15s ease;
     }
     .bottom-nav__item:hover,
@@ -3100,42 +3104,20 @@
       color: rgba(255, 209, 102, 0.95);
     }
     .bottom-nav__item svg {
-      width: 26px; height: 26px;
+      width: 20px; height: 20px;
       flex-shrink: 0;
-    }
-    .bottom-nav__top-row {
-      display: flex;
-      justify-content: center;
-      border-bottom: 1px solid rgba(255, 209, 102, 0.12);
-    }
-    .bottom-nav__home-btn {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.4rem;
-      padding: 0.55rem 1.5rem;
-      text-decoration: none;
-      color: rgba(255, 209, 102, 0.75);
-      transition: color 0.15s ease;
-    }
-    .bottom-nav__home-btn:hover,
-    .bottom-nav__home-btn:focus-visible {
-      color: rgba(255, 209, 102, 1);
-    }
-    .bottom-nav__home-btn svg {
-      width: 16px; height: 16px;
     }
     .bottom-nav__label {
       font-family: 'Satoshi', sans-serif;
-      font-size: 11px;
-      letter-spacing: 0.05em;
+      font-size: 10px;
+      letter-spacing: 0.04em;
       line-height: 1;
       font-weight: 500;
     }
 
-    /* ── Mobile body padding for bottom nav ── */
+    /* Mobile body padding for bottom nav */
     @media screen and (max-width: 768px) {
-      body { padding-bottom: calc(5rem + env(safe-area-inset-bottom, 16px)) !important; }
+      body { padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 16px)) !important; }
     }
 
   </style>
@@ -3583,13 +3565,6 @@
      TOOLS
 ═══════════════════════════════════════════╗ -->
 <section class="section tools-band" id="tools" aria-label="The four tools">
-  <div class="wrap">
-    <div class="section__head">
-      <span class="section__eye">The Architecture</span>
-      <h2 class="section__title">Four instruments.<br>One recursive loop.</h2>
-      <p class="section__desc">Each tool operates independently, but their power is in sequence. Together they close a system of reflective inquiry — one that spirals toward earned understanding, not comfortable answers.</p>
-    </div>
-  </div>
 
   <div class="tools-grid" role="list">
 
@@ -3661,6 +3636,14 @@
       </div>
     </article>
 
+  </div>
+
+  <div class="wrap">
+    <div class="section__head">
+      <span class="section__eye">The Architecture</span>
+      <h2 class="section__title">Four instruments.<br>One recursive loop.</h2>
+      <p class="section__desc">Each tool operates independently, but their power is in sequence. Together they close a system of reflective inquiry — one that spirals toward earned understanding, not comfortable answers.</p>
+    </div>
   </div>
 
 </section>
@@ -5832,48 +5815,32 @@ async function setSensitivity(val) {
 <!-- ╔══════════════════════════════════════════
      MOBILE BOTTOM NAV — Hub navigation
 ═══════════════════════════════════════════╗ -->
-<nav class="bottom-nav" aria-label="App navigation">
-  <!-- Top row: centered Home (Lumen IS the hub) -->
-  <div class="bottom-nav__top-row">
-    <a href="/" class="bottom-nav__home-btn">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
-      </svg>
-      <span class="bottom-nav__label">Home</span>
-    </a>
-  </div>
-
-  <!-- Bottom row: 4 sub-apps -->
+<nav class="bottom-nav" id="lumen-bottom-nav" aria-label="App navigation">
   <div class="bottom-nav__inner">
-
-    <a href="https://parallaxapp.up.railway.app/" class="bottom-nav__item" data-has-sso="true" data-nav-app="parallax">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/>
-      </svg>
-      <span class="bottom-nav__label">Parallax</span>
-    </a>
-
-    <a href="https://praxis-app.up.railway.app/" class="bottom-nav__item" data-has-sso="true" data-nav-app="praxis">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><line x1="8" y1="7" x2="16" y2="7"/><line x1="8" y1="11" x2="13" y2="11"/>
-      </svg>
-      <span class="bottom-nav__label">Praxis</span>
-    </a>
-
-    <a href="https://axiomtool-production.up.railway.app/#/" class="bottom-nav__item" data-has-sso="true" data-nav-app="axiom">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
-      </svg>
-      <span class="bottom-nav__label">Axiom</span>
-    </a>
-
     <a href="https://liminal-app.up.railway.app/" class="bottom-nav__item" data-has-sso="true" data-nav-app="liminal">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <path d="M20.354 15.354A9 9 0 0 1 8.646 3.646 9.003 9.003 0 0 0 12 21a9.003 9.003 0 0 0 8.354-5.646z"/>
       </svg>
       <span class="bottom-nav__label">Liminal</span>
     </a>
-
+    <a href="https://parallaxapp.up.railway.app/" class="bottom-nav__item" data-has-sso="true" data-nav-app="parallax">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
+      </svg>
+      <span class="bottom-nav__label">Parallax</span>
+    </a>
+    <a href="https://praxis-app.up.railway.app/" class="bottom-nav__item" data-has-sso="true" data-nav-app="praxis">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/>
+      </svg>
+      <span class="bottom-nav__label">Praxis</span>
+    </a>
+    <a href="https://axiomtool-production.up.railway.app/#/" class="bottom-nav__item" data-has-sso="true" data-nav-app="axiom">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+      </svg>
+      <span class="bottom-nav__label">Axiom</span>
+    </a>
   </div>
 </nav>
 
